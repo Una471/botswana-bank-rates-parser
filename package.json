@@ -1,0 +1,12 @@
+{
+  "name": "botswana-bank-rates-parser",
+  "version": "2.0.0",
+  "description": "AI-powered PDF parser with OCR for bank rates",
+  "main": "api/parse-pdf.js",
+  "dependencies": {
+    "pdf-parse": "^1.1.1"
+  },
+  "engines": {
+    "node": "20.x"
+  }
+}
