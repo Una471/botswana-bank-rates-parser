@@ -93,9 +93,9 @@
         .quality-fill { height: 100%; border-radius: 8px; background: linear-gradient(90deg, #059669, #34D399); transition: width 0.5s; }
         .quality-label { font-size: 0.8em; color: #666; margin-bottom: 4px; }
 
-        /* Airtable guide */
-        .airtable-guide { background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 14px; padding: 28px; margin-bottom: 28px; }
-        .airtable-guide h3 { color: #1E40AF; font-size: 1em; margin-bottom: 16px; }
+        /* Field Guide */
+        .field-guide { background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 14px; padding: 28px; margin-bottom: 28px; }
+        .field-guide h3 { color: #1E40AF; font-size: 1em; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
         .field-columns { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
         .field-col h4 { font-size: 0.78em; font-weight: 700; color: #2563EB; text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid #BFDBFE; }
         .field-col .field-item { font-size: 0.8em; padding: 4px 0; color: #374151; display: flex; justify-content: space-between; }
@@ -116,6 +116,22 @@
         .notification.error { border-left-color: #DC2626; }
         .notification.info { border-left-color: #2563EB; }
         @keyframes slideIn { from { transform: translateX(420px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+        .download-btn {
+            background: #0C2340;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.875em;
+            margin-top: 20px;
+        }
+        .download-btn:hover {
+            background: #1a3a5c;
+        }
     </style>
 </head>
 <body>
@@ -137,104 +153,66 @@
     <!-- Stats -->
     <div class="dashboard-grid">
         <div class="stat-card">
-            <h3>Banks in Airtable</h3>
-            <div class="number" id="totalBanks">0</div>
-        </div>
-        <div class="stat-card">
-            <h3>Last Update</h3>
-            <div class="number" id="lastUpload" style="font-size:1.2em">Never</div>
-        </div>
-        <div class="stat-card">
             <h3>Uploads This Session</h3>
             <div class="number" id="totalUploads">0</div>
         </div>
         <div class="stat-card">
-            <h3>Fields Per Bank Record</h3>
+            <h3>Fields Per Record</h3>
             <div class="number">44</div>
             <div class="sub">Including all rates + metadata</div>
         </div>
+        <div class="stat-card">
+            <h3>PDF Parser Status</h3>
+            <div class="number" id="parserStatus">Active</div>
+            <div class="sub">Gemini Vision API</div>
+        </div>
+        <div class="stat-card">
+            <h3>Last Upload</h3>
+            <div class="number" id="lastUpload" style="font-size:1.2em">—</div>
+        </div>
     </div>
 
-    <!-- Airtable Field Guide -->
-    <div class="airtable-guide">
-        <h3><i class="fas fa-database"></i> Airtable Setup — Required Fields (all Number type unless noted)</h3>
+    <!-- Field Guide -->
+    <div class="field-guide">
+        <h3><i class="fas fa-list-check"></i> Fields Being Extracted (44 total)</h3>
         <div class="field-columns">
             <div class="field-col">
                 <h4>Metadata</h4>
-                <div class="field-item">Bank Name <span class="field-type">Single line text (primary)</span></div>
-                <div class="field-item">Data Month <span class="field-type">Single line text</span></div>
-                <div class="field-item">Report Period <span class="field-type">Single line text</span></div>
-                <div class="field-item">MoPR <span class="field-type">Number</span></div>
-                <div class="field-item">Prime Lending Rate <span class="field-type">Number</span></div>
-                <div class="field-item">Last Updated <span class="field-type">Date</span></div>
-                <div class="field-item">Auto Updated <span class="field-type">Checkbox</span></div>
-                <div class="field-item">Data Source <span class="field-type">Single line text</span></div>
-                <div class="field-item">Contact Phone <span class="field-type">Single line text</span></div>
-                <div class="field-item">Website <span class="field-type">URL</span></div>
+                <div class="field-item">Bank Name</div>
+                <div class="field-item">Data Month</div>
+                <div class="field-item">Report Period</div>
+                <div class="field-item">MoPR</div>
+                <div class="field-item">Prime Lending Rate</div>
+                <div class="field-item">Contact Phone</div>
+                <div class="field-item">Website</div>
             </div>
             <div class="field-col">
-                <h4>Savings / Deposit Rates</h4>
-                <div class="field-item">Current Account Min <span class="field-type">Number</span></div>
-                <div class="field-item">Current Account Max <span class="field-type">Number</span></div>
-                <div class="field-item">Call Account Min <span class="field-type">Number</span></div>
-                <div class="field-item">Call Account Max <span class="field-type">Number</span></div>
-                <div class="field-item">Call Account Effective Min <span class="field-type">Number</span></div>
-                <div class="field-item">Call Account Effective Max <span class="field-type">Number</span></div>
-                <div class="field-item">Savings Min <span class="field-type">Number</span></div>
-                <div class="field-item">Savings Max <span class="field-type">Number</span></div>
-                <div class="field-item">Savings Effective Min <span class="field-type">Number</span></div>
-                <div class="field-item">Savings Effective Max <span class="field-type">Number</span></div>
-                <div class="field-item">Ordinary Savings Min <span class="field-type">Number</span></div>
-                <div class="field-item">Ordinary Savings Max <span class="field-type">Number</span></div>
-                <div class="field-item">SAYE Min <span class="field-type">Number</span></div>
-                <div class="field-item">SAYE Max <span class="field-type">Number</span></div>
-                <div class="field-item">SAYE Effective Min <span class="field-type">Number</span></div>
-                <div class="field-item">SAYE Effective Max <span class="field-type">Number</span></div>
+                <h4>Savings / Deposit</h4>
+                <div class="field-item">Current Account Min/Max</div>
+                <div class="field-item">Call Account Min/Max (Nom/Eff)</div>
+                <div class="field-item">Savings Min/Max (Nom/Eff)</div>
+                <div class="field-item">Ordinary Savings Min/Max</div>
+                <div class="field-item">SAYE Min/Max (Nom/Eff)</div>
             </div>
             <div class="field-col">
-                <h4>Fixed Deposit Rates</h4>
-                <div class="field-item">FD 91D Nominal Min <span class="field-type">Number</span></div>
-                <div class="field-item">FD 91D Nominal Max <span class="field-type">Number</span></div>
-                <div class="field-item">FD 91D Effective Min <span class="field-type">Number</span></div>
-                <div class="field-item">FD 91D Effective Max <span class="field-type">Number</span></div>
-                <div class="field-item">FD 3M Nominal Min <span class="field-type">Number</span></div>
-                <div class="field-item">FD 3M Nominal Max <span class="field-type">Number</span></div>
-                <div class="field-item">FD 3M Effective Min <span class="field-type">Number</span></div>
-                <div class="field-item">FD 3M Effective Max <span class="field-type">Number</span></div>
-                <div class="field-item">FD 6M Nominal Min <span class="field-type">Number</span></div>
-                <div class="field-item">FD 6M Nominal Max <span class="field-type">Number</span></div>
-                <div class="field-item">FD 6M Effective Min <span class="field-type">Number</span></div>
-                <div class="field-item">FD 6M Effective Max <span class="field-type">Number</span></div>
-                <div class="field-item">FD 12M Nominal Min <span class="field-type">Number</span></div>
-                <div class="field-item">FD 12M Nominal Max <span class="field-type">Number</span></div>
-                <div class="field-item">FD 12M Effective Min <span class="field-type">Number</span></div>
-                <div class="field-item">FD 12M Effective Max <span class="field-type">Number</span></div>
-                <div class="field-item">FD 24M Nominal Min <span class="field-type">Number</span></div>
-                <div class="field-item">FD 24M Nominal Max <span class="field-type">Number</span></div>
-                <div class="field-item">FD 24M Effective Min <span class="field-type">Number</span></div>
-                <div class="field-item">FD 24M Effective Max <span class="field-type">Number</span></div>
-                <div class="field-item">FD Over24M Nominal Min <span class="field-type">Number</span></div>
-                <div class="field-item">FD Over24M Nominal Max <span class="field-type">Number</span></div>
-                <div class="field-item">FD Over24M Effective Min <span class="field-type">Number</span></div>
-                <div class="field-item">FD Over24M Effective Max <span class="field-type">Number</span></div>
-                <div class="field-item">FD Minimum Balance <span class="field-type">Number</span></div>
+                <h4>Fixed Deposits</h4>
+                <div class="field-item">91 Day (Nom/Eff Min/Max)</div>
+                <div class="field-item">3 Month (Nom/Eff Min/Max)</div>
+                <div class="field-item">6 Month (Nom/Eff Min/Max)</div>
+                <div class="field-item">12 Month (Nom/Eff Min/Max)</div>
+                <div class="field-item">24 Month (Nom/Eff Min/Max)</div>
+                <div class="field-item">Over 24M (Nom/Eff Min/Max)</div>
+                <div class="field-item">FD Minimum Balance</div>
             </div>
             <div class="field-col">
-                <h4>Lending Rates (Final %, not PLR+)</h4>
-                <div class="field-item">Mortgage Rate Min <span class="field-type">Number</span></div>
-                <div class="field-item">Mortgage Rate Max <span class="field-type">Number</span></div>
-                <div class="field-item">Overdraft Min <span class="field-type">Number</span></div>
-                <div class="field-item">Overdraft Max <span class="field-type">Number</span></div>
-                <div class="field-item">Credit Card Rate Min <span class="field-type">Number</span></div>
-                <div class="field-item">Credit Card Rate Max <span class="field-type">Number</span></div>
-                <div class="field-item">Car Loan Min <span class="field-type">Number</span></div>
-                <div class="field-item">Car Loan Max <span class="field-type">Number</span></div>
-                <div class="field-item">Lease Loan Min <span class="field-type">Number</span></div>
-                <div class="field-item">Lease Loan Max <span class="field-type">Number</span></div>
-                <div class="field-item">Personal Loan Min <span class="field-type">Number</span></div>
-                <div class="field-item">Personal Loan Max <span class="field-type">Number</span></div>
-                <div class="field-item">Other LT Min <span class="field-type">Number</span></div>
-                <div class="field-item">Other LT Max <span class="field-type">Number</span></div>
+                <h4>Lending Rates</h4>
+                <div class="field-item">Mortgage Min/Max</div>
+                <div class="field-item">Overdraft Min/Max</div>
+                <div class="field-item">Credit Card Min/Max</div>
+                <div class="field-item">Car Loan Min/Max</div>
+                <div class="field-item">Lease Loan Min/Max</div>
+                <div class="field-item">Personal Loan Min/Max</div>
+                <div class="field-item">Other LT Min/Max</div>
             </div>
         </div>
     </div>
@@ -246,10 +224,10 @@
             <div class="upload-icon"><i class="fas fa-cloud-upload-alt"></i></div>
             <div class="upload-text">Drop file here or click to browse</div>
             <div class="upload-subtext">
-                Supported: <strong>PDF, JPG, PNG</strong> (max 10MB) · AI reads it visually — works even on image-based PDFs
+                Supported: <strong>PDF, JPG, PNG</strong> (max 10MB) · AI reads it visually
             </div>
             <div style="margin-top:10px;font-size:0.78em;color:#C9A84C">
-                💡 Tip: If a PDF fails, screenshot the rates table and upload as JPG
+                💡 Tip: Name files with bank name e.g. "ABSA_March2026.pdf"
             </div>
             <input type="file" id="fileInput" accept=".pdf,.jpg,.jpeg,.png">
         </div>
@@ -261,11 +239,11 @@
     <!-- Extracted Data Preview -->
     <div class="preview-section" id="previewSection">
         <div class="preview-header">
-            <h2><i class="fas fa-clipboard-check"></i> Extracted Data — Review Before Saving</h2>
+            <h2><i class="fas fa-clipboard-check"></i> Extracted Data — Review</h2>
             <div class="action-buttons">
                 <button class="btn btn-edit" id="editBtn" onclick="enableEdit()"><i class="fas fa-edit"></i> Edit</button>
                 <button class="btn btn-reject" onclick="rejectData()"><i class="fas fa-times"></i> Reject</button>
-                <button class="btn btn-approve" onclick="approveData()"><i class="fas fa-check"></i> Approve & Save to Airtable</button>
+                <button class="btn btn-approve" onclick="downloadData()"><i class="fas fa-download"></i> Download JSON</button>
             </div>
         </div>
 
@@ -287,6 +265,12 @@
             <thead><tr><th>Field</th><th>Extracted Value</th><th>Status</th></tr></thead>
             <tbody id="previewTableBody"></tbody>
         </table>
+
+        <div style="text-align: right; margin-top: 20px;">
+            <a href="#" id="downloadLink" class="download-btn" style="display: none;" download="bank_rates.json">
+                <i class="fas fa-download"></i> Download JSON File
+            </a>
+        </div>
     </div>
 
     <!-- Recent Uploads -->
@@ -319,9 +303,6 @@
 //  CONFIG
 // ============================================================
 const CONFIG = {
-    AIRTABLE_API_KEY: 'patBhLP5wtc8YTY0A.30baf2ceb238a472b12ac9b5db2d366ad0f68a1f6c9363ec15ad96357339053a',
-    AIRTABLE_BASE_ID: 'appHKaTJz3Bx550eb',
-    AIRTABLE_TABLE_NAME: 'Bank Interest Rates',
     PDF_PARSER_ENDPOINT: 'https://rates-parser.vercel.app/api/parse-pdf'
 };
 
@@ -330,7 +311,7 @@ let currentExtractedData = null;
 let currentFilename = null;
 
 // ============================================================
-//  FIELD DEFINITIONS — matches parse-pdf.js and Airtable
+//  FIELD DEFINITIONS
 // ============================================================
 const FIELD_SECTIONS = [
     {
@@ -360,7 +341,7 @@ const FIELD_SECTIONS = [
         ]
     },
     {
-        label: '🏦 Lending Rates (Final %, PLR already included)',
+        label: '🏦 Lending Rates',
         fields: [
             'Mortgage Rate Min', 'Mortgage Rate Max',
             'Overdraft Min', 'Overdraft Max',
@@ -372,30 +353,6 @@ const FIELD_SECTIONS = [
         ]
     }
 ];
-
-// All numeric fields in Airtable (everything except text/meta)
-const NUMERIC_FIELDS = new Set([
-    'MoPR', 'Prime Lending Rate',
-    'Current Account Min', 'Current Account Max',
-    'Call Account Min', 'Call Account Max', 'Call Account Effective Min', 'Call Account Effective Max',
-    'Savings Min', 'Savings Max', 'Savings Effective Min', 'Savings Effective Max',
-    'Ordinary Savings Min', 'Ordinary Savings Max',
-    'SAYE Min', 'SAYE Max', 'SAYE Effective Min', 'SAYE Effective Max',
-    'FD 91D Nominal Min', 'FD 91D Nominal Max', 'FD 91D Effective Min', 'FD 91D Effective Max',
-    'FD 3M Nominal Min', 'FD 3M Nominal Max', 'FD 3M Effective Min', 'FD 3M Effective Max',
-    'FD 6M Nominal Min', 'FD 6M Nominal Max', 'FD 6M Effective Min', 'FD 6M Effective Max',
-    'FD 12M Nominal Min', 'FD 12M Nominal Max', 'FD 12M Effective Min', 'FD 12M Effective Max',
-    'FD 24M Nominal Min', 'FD 24M Nominal Max', 'FD 24M Effective Min', 'FD 24M Effective Max',
-    'FD Over24M Nominal Min', 'FD Over24M Nominal Max', 'FD Over24M Effective Min', 'FD Over24M Effective Max',
-    'FD Minimum Balance',
-    'Mortgage Rate Min', 'Mortgage Rate Max',
-    'Overdraft Min', 'Overdraft Max',
-    'Credit Card Rate Min', 'Credit Card Rate Max',
-    'Car Loan Min', 'Car Loan Max',
-    'Lease Loan Min', 'Lease Loan Max',
-    'Personal Loan Min', 'Personal Loan Max',
-    'Other LT Min', 'Other LT Max',
-]);
 
 // ============================================================
 //  UPLOAD ZONE
@@ -451,6 +408,7 @@ async function handleFileUpload(file) {
                 showPreview(result.data);
                 showNotification('✅ ' + result.message, 'success');
                 addToUploadHistory(file.name, result.data['Bank Name'], 'success', result.data);
+                document.getElementById('lastUpload').textContent = new Date().toLocaleTimeString();
             } else {
                 throw new Error(result.error || result.details || 'Upload failed');
             }
@@ -514,12 +472,10 @@ function enableEdit() {
         if (!td) return;
         const field = td.dataset.field;
         const currentValue = currentExtractedData[field] ?? '';
-        const isNumeric = NUMERIC_FIELDS.has(field);
-        td.innerHTML = `<input type="${isNumeric ? 'number' : 'text'}" 
-            step="${isNumeric ? '0.01' : ''}"
+        td.innerHTML = `<input type="text" 
             value="${currentValue}" 
             data-field="${field}" 
-            placeholder="${isEmpty(currentValue) ? 'Enter value' : ''}"
+            placeholder="Enter value"
             class="field-edit">`;
     });
     document.getElementById('editBtn').textContent = '💾 Save Edits';
@@ -530,87 +486,48 @@ function saveEdits() {
     document.querySelectorAll('input[data-field]').forEach(input => {
         const field = input.dataset.field;
         let value = input.value.trim();
-        if (value === '') { currentExtractedData[field] = null; return; }
-        currentExtractedData[field] = NUMERIC_FIELDS.has(field) ? parseFloat(value) : value;
+        if (value === '') { 
+            currentExtractedData[field] = null; 
+        } else {
+            // Try to convert to number if it looks like a number
+            const num = parseFloat(value);
+            currentExtractedData[field] = isNaN(num) ? value : num;
+        }
     });
     showPreview(currentExtractedData);
-    showNotification('✅ Edits saved! Click Approve & Save to update Airtable.', 'info');
+    showNotification('✅ Edits saved!', 'info');
 }
 
 function rejectData() {
-    if (confirm('Reject this data? You can upload again or try manual entry.')) {
+    if (confirm('Reject this data?')) {
         document.getElementById('previewSection').classList.remove('show');
         currentExtractedData = null;
         showNotification('Data rejected.', 'error');
     }
 }
 
-// ============================================================
-//  APPROVE & SAVE TO AIRTABLE
-// ============================================================
-async function approveData() {
-    if (!currentExtractedData) { showNotification('No data to save.', 'error'); return; }
-    if (!currentExtractedData['Bank Name']) { showNotification('Bank Name is required. Click Edit and fill it in.', 'error'); return; }
-
-    showNotification('💾 Saving to Airtable...', 'info');
-
-    try {
-        const fields = {};
-
-        for (const [key, value] of Object.entries(currentExtractedData)) {
-            if (value === null || value === undefined || value === '') continue;
-
-            if (NUMERIC_FIELDS.has(key)) {
-                const n = parseFloat(String(value).replace(/[^0-9.]/g, ''));
-                if (!isNaN(n)) fields[key] = n;
-            } else if (typeof value === 'boolean') {
-                fields[key] = value;
-            } else {
-                fields[key] = String(value);
-            }
-        }
-
-        // Metadata
-        fields['Last Updated'] = new Date().toISOString().split('T')[0];
-        fields['Auto Updated'] = true;
-        fields['Data Source'] = 'PDF Upload';
-
-        const baseUrl = `https://api.airtable.com/v0/${CONFIG.AIRTABLE_BASE_ID}/${encodeURIComponent(CONFIG.AIRTABLE_TABLE_NAME)}`;
-        const headers = {
-            'Authorization': `Bearer ${CONFIG.AIRTABLE_API_KEY}`,
-            'Content-Type': 'application/json'
-        };
-
-        // Check for existing record
-        const searchRes = await fetch(`${baseUrl}?filterByFormula={Bank Name}="${encodeURIComponent(fields['Bank Name'])}"`, { headers });
-        const searchData = await searchRes.json();
-
-        let saveRes;
-        if (searchData.records?.length > 0) {
-            const recordId = searchData.records[0].id;
-            saveRes = await fetch(`${baseUrl}/${recordId}`, {
-                method: 'PATCH', headers, body: JSON.stringify({ fields })
-            });
-        } else {
-            saveRes = await fetch(baseUrl, {
-                method: 'POST', headers, body: JSON.stringify({ fields })
-            });
-        }
-
-        if (!saveRes.ok) {
-            const err = await saveRes.json();
-            throw new Error(err.error?.message || 'Airtable save failed');
-        }
-
-        showNotification(`✅ Saved: ${fields['Bank Name']} → Airtable`, 'success');
-        document.getElementById('previewSection').classList.remove('show');
-        currentExtractedData = null;
-        await updateStats();
-
-    } catch (error) {
-        console.error('Airtable error:', error);
-        showNotification('❌ Error: ' + error.message, 'error');
+function downloadData() {
+    if (!currentExtractedData) {
+        showNotification('No data to download', 'error');
+        return;
     }
+
+    const dataStr = JSON.stringify(currentExtractedData, null, 2);
+    const blob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    
+    const downloadLink = document.getElementById('downloadLink');
+    downloadLink.href = url;
+    downloadLink.download = `${currentExtractedData['Bank Name'] || 'bank'}_rates.json`;
+    downloadLink.style.display = 'inline-flex';
+    downloadLink.click();
+    
+    setTimeout(() => {
+        URL.revokeObjectURL(url);
+        downloadLink.style.display = 'none';
+    }, 100);
+    
+    showNotification('✅ JSON file downloaded', 'success');
 }
 
 // ============================================================
@@ -639,20 +556,6 @@ function renderUploadHistory() {
 }
 
 // ============================================================
-//  STATS
-// ============================================================
-async function updateStats() {
-    try {
-        const url = `https://api.airtable.com/v0/${CONFIG.AIRTABLE_BASE_ID}/${CONFIG.AIRTABLE_TABLE_NAME}`;
-        const res = await fetch(url, { headers: { 'Authorization': `Bearer ${CONFIG.AIRTABLE_API_KEY}` } });
-        const data = await res.json();
-        document.getElementById('totalBanks').textContent = data.records?.length ?? 0;
-        const lastDate = data.records?.[0]?.fields?.['Last Updated'];
-        if (lastDate) document.getElementById('lastUpload').textContent = lastDate;
-    } catch { /* ignore */ }
-}
-
-// ============================================================
 //  NOTIFICATION
 // ============================================================
 function showNotification(message, type = 'success') {
@@ -662,10 +565,24 @@ function showNotification(message, type = 'success') {
     setTimeout(() => el.classList.remove('show'), 5000);
 }
 
-function isEmpty(v) { return v === null || v === undefined || v === ''; }
+// ============================================================
+//  TEST CONNECTION
+// ============================================================
+async function testParserConnection() {
+    try {
+        const response = await fetch(CONFIG.PDF_PARSER_ENDPOINT, {
+            method: 'OPTIONS'
+        });
+        if (response.ok) {
+            document.getElementById('parserStatus').innerHTML = '✅ Connected';
+        }
+    } catch (error) {
+        document.getElementById('parserStatus').innerHTML = '⚠️ Check connection';
+    }
+}
 
-// Init
-updateStats();
+// Initialize
+testParserConnection();
 </script>
 </body>
 </html>
