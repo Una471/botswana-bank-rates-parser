@@ -167,7 +167,7 @@
 </div>
 
 <script>
-// Configuration
+// Configuration - CHANGE THIS TO YOUR ACTUAL VERCEL URL
 const API_URL = 'https://rates-parser-8bpibo86m-unaswis-projects.vercel.app/api/parse-pdf';
 
 let currentData = null;
@@ -214,6 +214,8 @@ async function handleFile(file) {
             progressFill.style.width = '60%';
             progressFill.textContent = '60% - Processing...';
 
+            console.log('Sending to:', API_URL);
+            
             const response = await fetch(API_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -224,6 +226,7 @@ async function handleFile(file) {
             });
 
             const result = await response.json();
+            console.log('Response:', result);
             
             progressFill.style.width = '100%';
             progressFill.textContent = '100%';
@@ -237,6 +240,7 @@ async function handleFile(file) {
                 throw new Error(result.error || result.details || 'Upload failed');
             }
         } catch (error) {
+            console.error('Error:', error);
             showNotification('❌ Error: ' + error.message, 'error');
             addToHistory(file.name, 'Unknown', 'error', 0);
         } finally {
