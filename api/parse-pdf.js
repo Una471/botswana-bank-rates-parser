@@ -1,9 +1,6 @@
 // ============================================================
-// BW RATE WATCH — PDF PARSER v5
-// Primary:  Gemini Vision (raw bytes → inline_data)
-// Fallback: pdf-parse text → Gemini text prompt
-// If GEMINI_API_KEY missing: returns clear error message
-// Never fails silently — always surfaces the real reason
+// BW RATE WATCH — PDF PARSER v6 (FIXED)
+// Uses ONLY Gemini Vision API for accurate extraction
 // ============================================================
 
 let pdfParse;
@@ -231,14 +228,10 @@ function applyFallbacks(data, bankInfo) {
 // ============================================================
 // PROMPT BUILDER
 // ============================================================
-function buildPrompt(bankInfo, pdfText) {
-  const isTextMode = !!pdfText;
+function buildPrompt(bankInfo) {
   const bankSection = bankInfo ? `\nBANK-SPECIFIC KNOWLEDGE:\n${bankInfo.pdfStructure}\n` : '';
-  const textSection = isTextMode
-    ? `\nPDF TEXT EXTRACTED (layout may be scrambled — use bank knowledge above to match values):\n---\n${pdfText.substring(0, 8000)}\n---`
-    : '';
 
-  return `You are extracting Botswana bank interest rates. Return ONLY valid JSON — no markdown, no explanation.
+  return `You are extracting Botswana bank interest rates from a PDF document. Look at the document CAREFULLY and extract ALL rates.
 
 RULES:
 1. All rates = plain NUMBERS only (e.g. 8.01 — not "8.01%" not "Prime+2")
@@ -250,10 +243,12 @@ RULES:
 7. "Over 24 Months" ≠ "24 Months"
 8. Ignore ZAR/USD/GBP/EUR — BWP only
 9. Min balance = number only (1000 not "P1,000")
-10. WEBSITE: Look in header, footer, small print, watermark — anywhere in the document.
-    Format: https://www.domain.co.bw. ${bankInfo?.website ? `Known: ${bankInfo.website}` : ''}
+10. WEBSITE: Look in header, footer, small print, watermark — anywhere in the document. Format: https://www.domain.co.bw.
 11. CONTACT PHONE: Look in footer/contact section.
-${bankSection}${textSection}
+12. Look for "Data Month" or "Report Period" or "As at" dates in the document.
+13. EXTRACT EVERY SINGLE FIELD you can find. Do not leave any field empty if the data exists in the document.
+
+${bankSection}
 
 Return EXACTLY this JSON structure (null for missing fields):
 {
@@ -291,7 +286,9 @@ Return EXACTLY this JSON structure (null for missing fields):
   "Lease Loan Min": null, "Lease Loan Max": null,
   "Personal Loan Min": null, "Personal Loan Max": null,
   "Other LT Min": null, "Other LT Max": null
-}`;
+}
+
+IMPORTANT: Your response must be ONLY the JSON object. No markdown, no explanation, no backticks.`;
 }
 
 // ============================================================
@@ -300,160 +297,141 @@ Return EXACTLY this JSON structure (null for missing fields):
 async function callGemini(parts) {
   const key = process.env.GEMINI_API_KEY;
 
-  // Surface this clearly — don't fail silently
   if (!key) {
     throw new Error(
-      'GEMINI_API_KEY is not set. ' +
+      'GEMINI_API_KEY is not set in Vercel environment variables. ' +
       'Go to Vercel Dashboard → Your Project → Settings → Environment Variables → ' +
       'Add GEMINI_API_KEY with your Google AI Studio key. Then redeploy.'
     );
   }
 
-  const res = await fetch(
+  const response = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         contents: [{ parts }],
-        generationConfig: { temperature: 0.02, maxOutputTokens: 3000 }
+        generationConfig: { 
+          temperature: 0.1,
+          maxOutputTokens: 4096,
+          topP: 0.95,
+          topK: 40
+        }
       })
     }
   );
 
-  if (!res.ok) {
-    const body = await res.text();
-    throw new Error(`Gemini API HTTP ${res.status}: ${body.substring(0, 200)}`);
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Gemini API error (${response.status}): ${errorText.substring(0, 200)}`);
   }
 
-  const result = await res.json();
-
+  const result = await response.json();
+  
   if (result.error) {
-    throw new Error(`Gemini error ${result.error.code}: ${result.error.message}`);
+    throw new Error(`Gemini error: ${result.error.message}`);
   }
 
   const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
   if (!text) {
-    const reason = result.candidates?.[0]?.finishReason;
-    throw new Error(`Gemini returned empty response. Finish reason: ${reason || 'unknown'}`);
+    throw new Error('Gemini returned empty response');
   }
 
   return parseJSON(text);
 }
 
 // ============================================================
-// EXTRACTION METHODS
-// ============================================================
-
-// Method 1: Vision — send raw file bytes, Gemini sees it visually
-async function extractVision(base64Content, mimeType, bankInfo) {
-  console.log(`[Vision] ${mimeType}...`);
-  const data = await callGemini([
-    { inline_data: { mime_type: mimeType, data: base64Content } },
-    { text: buildPrompt(bankInfo, null) }
-  ]);
-  console.log(`[Vision] Got ${countFilled(data)} fields`);
-  return data;
-}
-
-// Method 2: Text fallback — extract text via pdf-parse, send to Gemini
-async function extractText(pdfBuffer, bankInfo) {
-  if (!pdfParse) throw new Error('pdf-parse not installed (check package.json dependencies)');
-  console.log('[Text] Extracting with pdf-parse...');
-  const pdfData = await pdfParse(pdfBuffer);
-  const text = pdfData.text || '';
-  if (text.length < 60) throw new Error('PDF has no extractable text (image-based). Upload a JPG screenshot instead.');
-  console.log(`[Text] ${text.length} chars, sending to Gemini...`);
-  const data = await callGemini([{ text: buildPrompt(bankInfo, text) }]);
-  console.log(`[Text] Got ${countFilled(data)} fields`);
-  return data;
-}
-
-// ============================================================
 // MAIN HANDLER
 // ============================================================
 module.exports = async (req, res) => {
+  // CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  if (req.method === 'OPTIONS') return res.status(200).end();
-  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+  
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+  
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
 
   try {
     const { filename, content, mimeType } = req.body || {};
 
     if (!filename || !content) {
-      return res.status(400).json({ error: 'Missing filename or content in request' });
+      return res.status(400).json({ 
+        error: 'Missing required fields', 
+        details: 'filename and content are required' 
+      });
     }
 
     const detectedMime = mimeType || detectMimeType(filename, content);
-    const isImage      = detectedMime.startsWith('image/');
     const bankDetected = detectBank(filename);
-    const bankInfo     = bankDetected?.info || null;
+    const bankInfo = bankDetected?.info || null;
 
-    console.log(`\n=== ${filename} | ${detectedMime} | ${bankInfo?.fullName || 'UNKNOWN'} ===`);
+    console.log(`\n=== Processing ${filename} | ${detectedMime} | ${bankInfo?.fullName || 'Unknown'} ===`);
 
-    let data = null;
-    let visionError = null;
-    let textError   = null;
-
-    // ── ATTEMPT 1: Gemini Vision ──────────────────────────
-    try {
-      data = await extractVision(content, detectedMime, bankInfo);
-    } catch (err) {
-      visionError = err;
-      console.error('[Vision] Failed:', err.message);
-    }
-
-    // ── ATTEMPT 2: pdf-parse + Gemini text (PDF only) ────
-    if (!data && !isImage) {
-      try {
-        const pdfBuffer = Buffer.from(content, 'base64');
-        data = await extractText(pdfBuffer, bankInfo);
-      } catch (err) {
-        textError = err;
-        console.error('[Text] Failed:', err.message);
+    // Try Gemini Vision first (works for both PDFs and images)
+    console.log('[Vision] Sending to Gemini Vision API...');
+    
+    const parts = [
+      {
+        inline_data: {
+          mime_type: detectedMime,
+          data: content
+        }
+      },
+      {
+        text: buildPrompt(bankInfo)
       }
+    ];
+
+    let data = await callGemini(parts);
+    
+    if (!data) {
+      throw new Error('Failed to parse Gemini response');
     }
 
-    // ── Fill missing bank name + website from knowledge base ──
-    if (data) data = applyFallbacks(data, bankInfo);
+    // Apply fallbacks for missing data
+    data = applyFallbacks(data, bankInfo);
 
-    // ── Both failed — return clear error ──
-    if (!data || !data['Bank Name']) {
-      // Determine best error message
-      let errMsg = '';
-      if (visionError?.message?.includes('GEMINI_API_KEY')) {
-        errMsg = visionError.message; // key missing — most important
-      } else if (visionError && !textError) {
-        errMsg = `Vision failed: ${visionError.message}`;
-      } else if (textError && !visionError) {
-        errMsg = `Text extraction failed: ${textError.message}`;
-      } else if (visionError && textError) {
-        errMsg = `Both methods failed. Vision: ${visionError.message} | Text: ${textError.message}`;
-      } else {
-        errMsg = bankInfo
-          ? `Gemini could not read "${bankInfo.fullName}" document.`
-          : `Bank not detected from filename. Rename to include bank name e.g. "ABSA_Jan2026.pdf"`;
-      }
+    const filled = countFilled(data);
+    const totalFields = 44; // Total number of fields we expect
+    const quality = Math.round((filled / totalFields) * 100);
 
-      console.error('All extraction failed:', errMsg);
-      return res.status(400).json({ error: 'Extraction failed', details: errMsg });
-    }
-
-    const filled  = countFilled(data);
-    const quality = Math.round((filled / 44) * 100);
-    console.log(`=== Done: ${data['Bank Name']} | ${filled}/44 | ${quality}% ===`);
+    console.log(`=== Success: ${data['Bank Name'] || 'Unknown'} | ${filled}/${totalFields} fields (${quality}%) ===`);
 
     return res.status(200).json({
       success: true,
-      message: `Extracted ${filled}/44 fields (${quality}% complete). Review and approve.`,
+      message: `Extracted ${filled}/${totalFields} fields (${quality}% complete)`,
       quality,
       data
     });
 
-  } catch (err) {
-    console.error('Unhandled error:', err);
-    return res.status(500).json({ error: 'Server error', details: err.message });
+  } catch (error) {
+    console.error('Error:', error);
+    
+    // Check for specific error types
+    if (error.message.includes('GEMINI_API_KEY')) {
+      return res.status(500).json({
+        error: 'Configuration Error',
+        details: error.message
+      });
+    }
+    
+    if (error.message.includes('fetch failed')) {
+      return res.status(500).json({
+        error: 'Network Error',
+        details: 'Failed to connect to Gemini API. Check your internet connection.'
+      });
+    }
+    
+    return res.status(500).json({
+      error: 'Extraction Failed',
+      details: error.message
+    });
   }
 };
