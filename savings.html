@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Savings Rates Comparison — BW Rate Watch</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#0C2340;--navy-mid:#1A3A5C;--gold:#C9A84C;--gold-light:#E8C96A;--green:#059669;--green-light:#ECFDF5;--red:#DC2626;--surface:#F8F9FC;--border:#E5E8EF;--text:#1A2535;--muted:#6B7280;--white:#FFFFFF}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'DM Sans',sans-serif;background:var(--surface);color:var(--text);line-height:1.6}
+nav{background:var(--navy);position:sticky;top:0;z-index:100;box-shadow:0 2px 20px rgba(0,0,0,0.3)}
+.nav-inner{max-width:1200px;margin:0 auto;padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:64px}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+.logo-icon{width:36px;height:36px;background:var(--gold);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;color:var(--navy);font-size:1.1em}
+.logo-text{font-weight:700;color:white;font-size:1.1em}.logo-text span{color:var(--gold)}
+.nav-links{display:flex;gap:4px}
+.nav-links a{padding:8px 14px;border-radius:8px;text-decoration:none;color:rgba(255,255,255,0.7);font-size:0.875em;font-weight:500;transition:all 0.2s}
+.nav-links a:hover,.nav-links a.active{color:white;background:rgba(255,255,255,0.1)}
+.nav-links a.active{color:var(--gold-light)}
+.nav-admin{padding:7px 16px;background:rgba(201,168,76,0.15);border:1px solid rgba(201,168,76,0.4);border-radius:8px;color:var(--gold-light);font-size:0.8em;font-weight:600;text-decoration:none}
+
+.page-header{background:linear-gradient(135deg,var(--navy) 0%,var(--navy-mid) 100%);padding:48px 24px;border-bottom:3px solid var(--green)}
+.page-header-inner{max-width:1200px;margin:0 auto}
+.breadcrumb{font-size:0.78em;color:rgba(255,255,255,0.45);margin-bottom:12px}
+.breadcrumb a{color:rgba(255,255,255,0.45);text-decoration:none}.breadcrumb a:hover{color:white}
+.page-header h1{font-family:'DM Serif Display',serif;font-size:2.2em;color:white;margin-bottom:8px}
+.page-header p{color:rgba(255,255,255,0.6);font-size:1em;max-width:600px;font-weight:300}
+
+.main{max-width:1200px;margin:0 auto;padding:40px 24px}
+
+/* FILTERS */
+.filter-bar{display:flex;align-items:center;gap:10px;margin-bottom:28px;flex-wrap:wrap}
+.filter-label{font-size:0.78em;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;white-space:nowrap}
+.filter-btn{padding:7px 16px;border-radius:100px;border:1.5px solid var(--border);background:white;font-size:0.83em;font-weight:500;color:var(--text);cursor:pointer;transition:all 0.2s}
+.filter-btn:hover{border-color:var(--green);color:var(--green)}
+.filter-btn.active{background:var(--green);color:white;border-color:var(--green)}
+.filter-spacer{flex:1}
+.sort-select{padding:7px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:0.83em;background:white;color:var(--text);cursor:pointer;font-family:inherit}
+
+/* INFO CARD */
+.info-card{background:var(--green-light);border:1px solid #A7F3D0;border-radius:12px;padding:16px 20px;margin-bottom:28px;display:flex;gap:12px;align-items:flex-start}
+.info-card-icon{font-size:1.3em;flex-shrink:0;margin-top:1px}
+.info-card p{font-size:0.83em;color:#065F46;line-height:1.6}
+.info-card strong{color:#047857}
+
+/* TABLE WRAP */
+.table-wrap{background:white;border-radius:16px;border:1px solid var(--border);overflow:hidden;overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:700px}
+thead th{background:var(--navy);color:white;padding:14px 16px;text-align:left;font-size:0.75em;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;white-space:nowrap}
+thead th.sortable{cursor:pointer;user-select:none}
+thead th.sortable:hover{background:var(--navy-mid)}
+tbody tr{border-bottom:1px solid var(--border);transition:background 0.15s}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:#FAFBFF}
+td{padding:14px 16px;font-size:0.875em;vertical-align:middle}
+.bank-cell{display:flex;align-items:center;gap:10px}
+.bank-avatar{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:0.75em;color:white;flex-shrink:0}
+.bank-name-link{font-weight:600;color:var(--text);text-decoration:none;font-size:0.9em}
+.bank-name-link:hover{color:var(--navy);text-decoration:underline}
+.bank-site{font-size:0.73em;color:var(--muted);text-decoration:none}
+.bank-site:hover{color:var(--navy)}
+.rate-best{font-weight:700;color:var(--green);font-size:1em}
+.rate-best::after{content:' ✓';font-size:0.75em}
+.rate-normal{color:var(--text);font-weight:500}
+.rate-na{color:#D1D5DB;font-style:italic;font-size:0.85em}
+.badge-best{background:var(--green-light);color:var(--green);font-size:0.7em;font-weight:700;padding:2px 8px;border-radius:100px;margin-left:6px}
+.min-bal{font-size:0.8em;color:var(--muted)}
+.updated{font-size:0.72em;color:var(--muted);white-space:nowrap}
+
+.loading-state,.empty-state{text-align:center;padding:60px 24px;color:var(--muted)}
+.empty-icon{font-size:3em;margin-bottom:12px;opacity:0.4}
+.empty-title{font-size:1.1em;font-weight:600;color:var(--text);margin-bottom:8px}
+.empty-sub{font-size:0.875em;line-height:1.6;max-width:400px;margin:0 auto 20px}
+.empty-link{display:inline-flex;align-items:center;gap:6px;padding:9px 20px;background:var(--navy);color:white;border-radius:8px;text-decoration:none;font-size:0.85em;font-weight:600}
+.spinner{display:inline-block;width:20px;height:20px;border:2px solid var(--border);border-top-color:var(--navy);border-radius:50%;animation:spin 0.8s linear infinite;vertical-align:middle;margin-right:8px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.explainer{background:white;border-radius:16px;border:1px solid var(--border);padding:32px;margin-top:32px}
+.explainer h3{font-family:'DM Serif Display',serif;font-size:1.3em;color:var(--navy);margin-bottom:16px}
+.explainer-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:20px}
+.exp-item h4{font-size:0.875em;font-weight:700;color:var(--text);margin-bottom:4px}
+.exp-item p{font-size:0.8em;color:var(--muted);line-height:1.5}
+
+.disclaimer{margin-top:40px;padding:20px;background:white;border-radius:12px;border:1px solid var(--border);font-size:0.78em;color:var(--muted);line-height:1.6}
+@media(max-width:768px){.nav-links{display:none}.filter-spacer{display:none}}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <a href="index.html" class="logo"><div class="logo-icon">BW</div><div class="logo-text">Rate<span>Watch</span></div></a>
+    <div class="nav-links">
+      <a href="index.html">Overview</a>
+      <a href="savings.html" class="active">Savings</a>
+      <a href="fixed-deposits.html">Fixed Deposits</a>
+      <a href="loans.html">Loans</a>
+    </div>
+    <a href="admin.html" class="nav-admin">⚙ Admin</a>
+  </div>
+</nav>
+
+<div class="page-header">
+  <div class="page-header-inner">
+    <div class="breadcrumb"><a href="index.html">Home</a> / Savings Rates</div>
+    <h1>Savings Account Rates</h1>
+    <p>Compare savings, call accounts and SAYE rates across all Botswana banks — see who pays you the most.</p>
+  </div>
+</div>
+
+<div class="main">
+
+  <div class="filter-bar">
+    <span class="filter-label">Show:</span>
+    <button class="filter-btn active" onclick="setFilter('all',this)">All Products</button>
+    <button class="filter-btn" onclick="setFilter('savings',this)">Savings Accounts</button>
+    <button class="filter-btn" onclick="setFilter('call',this)">Call Accounts</button>
+    <button class="filter-btn" onclick="setFilter('saye',this)">SAYE</button>
+    <button class="filter-btn" onclick="setFilter('current',this)">Current Accounts</button>
+    <div class="filter-spacer"></div>
+    <select class="sort-select" id="sortSelect" onchange="renderTable()">
+      <option value="best_rate">Sort: Best Rate First</option>
+      <option value="bank_name">Sort: Bank Name A–Z</option>
+    </select>
+  </div>
+
+  <div class="info-card">
+    <div class="info-card-icon">💡</div>
+    <p><strong>What are "Nominal" vs "Effective" rates?</strong> The <strong>nominal rate</strong> is the stated annual rate. The <strong>effective (actual) rate</strong> accounts for compounding — it's slightly higher and is what you actually earn over the year. Always compare effective rates when choosing where to save.</p>
+  </div>
+
+  <div class="table-wrap" id="tableWrap">
+    <table>
+      <thead id="tableHead"></thead>
+      <tbody id="tableBody"><tr><td colspan="10"><div class="loading-state"><span class="spinner"></span>Loading rates from Airtable...</div></td></tr></tbody>
+    </table>
+  </div>
+
+  <div class="explainer">
+    <h3>Understanding Savings Products</h3>
+    <div class="explainer-grid">
+      <div class="exp-item"><h4>🏦 Savings Account</h4><p>Flexible savings with the ability to withdraw anytime. Good for emergency funds. Usually earns between 0–5.5% per year.</p></div>
+      <div class="exp-item"><h4>📞 Call Account</h4><p>For larger balances. May require advance notice to withdraw. Earns slightly more than a regular savings account.</p></div>
+      <div class="exp-item"><h4>📅 SAYE (Save As You Earn)</h4><p>Commitment-based savings where you deposit a fixed amount regularly. Offered by BSB. Often earns higher rates as reward for discipline.</p></div>
+      <div class="exp-item"><h4>💳 Current Account</h4><p>Primarily for daily transactions (debit card, EFTs). Usually pays zero or very low interest. Not ideal for growing savings.</p></div>
+    </div>
+  </div>
+
+  <div class="disclaimer">⚠️ Rates shown are indicative and sourced from officially published bank rate schedules. Rates change monthly — always confirm with your bank before opening an account. Links go directly to each bank's official website.</div>
+</div>
+
+<script>
+const AT_KEY = 'patBhLP5wtc8YTY0A.30baf2ceb238a472b12ac9b5db2d366ad0f68a1f6c9363ec15ad96357339053a';
+const AT_BASE = 'appHKaTJz3Bx550eb';
+const AT_TABLE = 'Bank Interest Rates';
+const BANK_COLORS = ['#0C2340','#1A3A5C','#C9A84C','#059669','#2563EB','#D97706','#7C3AED','#DC2626','#0891B2','#16A34A','#EA580C'];
+
+let allBanks = [];
+let currentFilter = 'all';
+
+function bankColor(n){let h=0;for(const c of n)h=(h*31+c.charCodeAt(0))&0xFFFF;return BANK_COLORS[h%BANK_COLORS.length];}
+function bankInitials(n){return(n||'??').split(' ').filter(w=>/^[A-Z]/.test(w)).map(w=>w[0]).join('').substring(0,3)||n.substring(0,2).toUpperCase();}
+function fmt(v){const n=parseFloat(v);return isNaN(n)?null:n.toFixed(2)+'%';}
+function maxOf(...vals){const ns=vals.map(v=>parseFloat(v)).filter(v=>!isNaN(v));return ns.length?Math.max(...ns):null;}
+
+function setFilter(f, el) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  renderTable();
+}
+
+const PRODUCT_CONFIGS = {
+  all: {
+    label: 'All Products',
+    columns: ['Savings','Call Account','SAYE','Current'],
+    headers: ['Bank','Savings (Nom.)','Savings (Eff.)','Call (Nom.)','Call (Eff.)','SAYE (Nom.)','Current','Min Balance','Updated'],
+    getRate: b => maxOf(b['Savings Max'], b['Call Account Max'], b['SAYE Max'])
+  },
+  savings: {
+    label: 'Savings Accounts',
+    columns: ['Savings'],
+    headers: ['Bank','Nominal Min','Nominal Max','Effective Min','Effective Max','Min Balance','Updated'],
+    getRate: b => maxOf(b['Savings Max'], b['Ordinary Savings Max'])
+  },
+  call: {
+    label: 'Call Accounts',
+    headers: ['Bank','Nominal Min','Nominal Max','Effective Min','Effective Max','Min Balance','Updated'],
+    getRate: b => maxOf(b['Call Account Max'])
+  },
+  saye: {
+    label: 'SAYE (Save As You Earn)',
+    headers: ['Bank','Nominal Min','Nominal Max','Effective Min','Effective Max','Updated'],
+    getRate: b => maxOf(b['SAYE Max'])
+  },
+  current: {
+    label: 'Current Accounts',
+    headers: ['Bank','Nominal Min','Nominal Max','Min Balance','Updated'],
+    getRate: b => maxOf(b['Current Account Max'])
+  }
+};
+
+function renderTable() {
+  const sortBy = document.getElementById('sortSelect').value;
+  let banks = [...allBanks];
+
+  if (sortBy === 'bank_name') {
+    banks.sort((a,b) => (a['Bank Name']||'').localeCompare(b['Bank Name']||''));
+  }
+
+  const thead = document.getElementById('tableHead');
+  const tbody = document.getElementById('tableBody');
+
+  if (!banks.length) {
+    thead.innerHTML = '';
+    tbody.innerHTML = `<tr><td colspan="10"><div class="empty-state">
+      <div class="empty-icon">📭</div>
+      <div class="empty-title">No bank data loaded yet</div>
+      <div class="empty-sub">Use the admin page to upload bank rate PDFs. Once uploaded, this page will automatically show all savings rates.</div>
+      <a href="admin.html" class="empty-link">⚙ Upload Bank Data</a>
+    </div></td></tr>`;
+    return;
+  }
+
+  if (sortBy === 'best_rate') {
+    const cfg = PRODUCT_CONFIGS[currentFilter];
+    banks.sort((a,b) => {
+      const ra = cfg.getRate(a) || 0;
+      const rb = cfg.getRate(b) || 0;
+      return rb - ra;
+    });
+  }
+
+  let html = '';
+
+  if (currentFilter === 'all') {
+    // Find best rates
+    const bestSav = Math.max(...banks.map(b => parseFloat(b['Savings Max'])).filter(v=>!isNaN(v)));
+    const bestCall = Math.max(...banks.map(b => parseFloat(b['Call Account Max'])).filter(v=>!isNaN(v)));
+    const bestSAYE = Math.max(...banks.map(b => parseFloat(b['SAYE Max'])).filter(v=>!isNaN(v)));
+
+    thead.innerHTML = `<tr>
+      <th>Bank</th><th>Savings Rate</th><th>Call Account</th>
+      <th>SAYE</th><th>Current Account</th><th>Updated</th>
+    </tr>`;
+
+    banks.forEach(b => {
+      const name = b['Bank Name'];
+      const website = b['Website'] || '#';
+      const savNom = fmt(b['Savings Max']); const savEff = fmt(b['Savings Effective Max']);
+      const callNom = fmt(b['Call Account Max']); const callEff = fmt(b['Call Account Effective Max']);
+      const saye = fmt(b['SAYE Max']);
+      const cur = b['Current Account Max'] ? fmt(b['Current Account Max']) : null;
+      const isBestSav = parseFloat(b['Savings Max']) === bestSav && !isNaN(bestSav);
+      const isBestCall = parseFloat(b['Call Account Max']) === bestCall && !isNaN(bestCall);
+      const isBestSAYE = parseFloat(b['SAYE Max']) === bestSAYE && !isNaN(bestSAYE);
+
+      html += `<tr>
+        <td><div class="bank-cell">
+          <div class="bank-avatar" style="background:${bankColor(name)}">${bankInitials(name)}</div>
+          <div>
+            <div><a href="${website}" target="_blank" class="bank-name-link">${name}</a></div>
+            <a href="${website}" target="_blank" class="bank-site">🔗 Visit website</a>
+          </div>
+        </div></td>
+        <td>${savNom ? `<span class="${isBestSav?'rate-best':'rate-normal'}">${savNom}${savEff?` / ${savEff} eff.`:''}</span>${isBestSav?'<span class="badge-best">BEST</span>':''}` : '<span class="rate-na">—</span>'}</td>
+        <td>${callNom ? `<span class="${isBestCall?'rate-best':'rate-normal'}">${callNom}${callEff?` / ${callEff} eff.`:''}</span>${isBestCall?'<span class="badge-best">BEST</span>':''}` : '<span class="rate-na">—</span>'}</td>
+        <td>${saye ? `<span class="${isBestSAYE?'rate-best':'rate-normal'}">${saye}</span>${isBestSAYE?'<span class="badge-best">BEST</span>':''}` : '<span class="rate-na">BSB only</span>'}</td>
+        <td>${cur ? `<span class="rate-normal">${cur}</span>` : '<span class="rate-na">NIL / —</span>'}</td>
+        <td><span class="updated">${b['Data Month'] || b['Last Updated'] || '—'}</span></td>
+      </tr>`;
+    });
+
+  } else if (currentFilter === 'savings') {
+    thead.innerHTML = `<tr><th>Bank</th><th>Nominal Min</th><th>Nominal Max</th><th>Effective Min</th><th>Effective Max</th><th>Min. Balance</th><th>Updated</th></tr>`;
+    const best = Math.max(...banks.map(b=>parseFloat(b['Savings Max'])).filter(v=>!isNaN(v)));
+    banks.forEach(b => {
+      const name=b['Bank Name']; const website=b['Website']||'#';
+      const isBest = parseFloat(b['Savings Max'])===best && !isNaN(best);
+      html += `<tr>
+        <td><div class="bank-cell"><div class="bank-avatar" style="background:${bankColor(name)}">${bankInitials(name)}</div>
+          <div><div><a href="${website}" target="_blank" class="bank-name-link">${name}</a></div><a href="${website}" target="_blank" class="bank-site">🔗 Visit website</a></div>
+        </div></td>
+        <td>${fmt(b['Savings Min'])||'<span class="rate-na">—</span>'}</td>
+        <td class="${isBest?'rate-best':'rate-normal'}">${fmt(b['Savings Max'])||'<span class="rate-na">—</span>'}${isBest?' <span class="badge-best">BEST</span>':''}</td>
+        <td>${fmt(b['Savings Effective Min'])||'<span class="rate-na">—</span>'}</td>
+        <td>${fmt(b['Savings Effective Max'])||'<span class="rate-na">—</span>'}</td>
+        <td class="min-bal">${b['FD Minimum Balance']?'P'+parseInt(b['FD Minimum Balance']).toLocaleString():'P100+'}</td>
+        <td class="updated">${b['Data Month']||b['Last Updated']||'—'}</td>
+      </tr>`;
+    });
+
+  } else if (currentFilter === 'call') {
+    thead.innerHTML = `<tr><th>Bank</th><th>Nominal Min</th><th>Nominal Max</th><th>Effective Min</th><th>Effective Max</th><th>Min. Balance</th><th>Updated</th></tr>`;
+    const best = Math.max(...banks.map(b=>parseFloat(b['Call Account Max'])).filter(v=>!isNaN(v)));
+    banks.forEach(b => {
+      const name=b['Bank Name']; const website=b['Website']||'#';
+      const hasCall = b['Call Account Max']!==null && b['Call Account Max']!==undefined;
+      const isBest = parseFloat(b['Call Account Max'])===best && !isNaN(best);
+      html += `<tr>
+        <td><div class="bank-cell"><div class="bank-avatar" style="background:${bankColor(name)}">${bankInitials(name)}</div>
+          <div><div><a href="${website}" target="_blank" class="bank-name-link">${name}</a></div><a href="${website}" target="_blank" class="bank-site">🔗 Visit website</a></div>
+        </div></td>
+        <td>${fmt(b['Call Account Min'])||'<span class="rate-na">—</span>'}</td>
+        <td class="${isBest?'rate-best':'rate-normal'}">${fmt(b['Call Account Max'])||'<span class="rate-na">—</span>'}${isBest?' <span class="badge-best">BEST</span>':''}</td>
+        <td>${fmt(b['Call Account Effective Min'])||'<span class="rate-na">—</span>'}</td>
+        <td>${fmt(b['Call Account Effective Max'])||'<span class="rate-na">—</span>'}</td>
+        <td class="min-bal">${b['Call Account Max']?'P1,000+':'—'}</td>
+        <td class="updated">${b['Data Month']||b['Last Updated']||'—'}</td>
+      </tr>`;
+    });
+
+  } else if (currentFilter === 'saye') {
+    thead.innerHTML = `<tr><th>Bank</th><th>Nominal Min</th><th>Nominal Max</th><th>Effective Min</th><th>Effective Max</th><th>Notes</th><th>Updated</th></tr>`;
+    banks.forEach(b => {
+      const name=b['Bank Name']; const website=b['Website']||'#';
+      const hasSaye = b['SAYE Max']!==null && b['SAYE Max']!==undefined;
+      html += `<tr>
+        <td><div class="bank-cell"><div class="bank-avatar" style="background:${bankColor(name)}">${bankInitials(name)}</div>
+          <div><div><a href="${website}" target="_blank" class="bank-name-link">${name}</a></div><a href="${website}" target="_blank" class="bank-site">🔗 Visit website</a></div>
+        </div></td>
+        <td>${fmt(b['SAYE Min'])||'<span class="rate-na">—</span>'}</td>
+        <td>${fmt(b['SAYE Max'])||'<span class="rate-na">—</span>'}</td>
+        <td>${fmt(b['SAYE Effective Min'])||'<span class="rate-na">—</span>'}</td>
+        <td>${fmt(b['SAYE Effective Max'])||'<span class="rate-na">—</span>'}</td>
+        <td style="font-size:0.78em;color:var(--muted)">${hasSaye?'Commitment savings':'Not offered'}</td>
+        <td class="updated">${b['Data Month']||b['Last Updated']||'—'}</td>
+      </tr>`;
+    });
+
+  } else if (currentFilter === 'current') {
+    thead.innerHTML = `<tr><th>Bank</th><th>Nominal Min</th><th>Nominal Max</th><th>Notes</th><th>Updated</th></tr>`;
+    banks.forEach(b => {
+      const name=b['Bank Name']; const website=b['Website']||'#';
+      html += `<tr>
+        <td><div class="bank-cell"><div class="bank-avatar" style="background:${bankColor(name)}">${bankInitials(name)}</div>
+          <div><div><a href="${website}" target="_blank" class="bank-name-link">${name}</a></div><a href="${website}" target="_blank" class="bank-site">🔗 Visit website</a></div>
+        </div></td>
+        <td>${fmt(b['Current Account Min'])||'<span class="rate-na">NIL</span>'}</td>
+        <td>${fmt(b['Current Account Max'])||'<span class="rate-na">NIL</span>'}</td>
+        <td style="font-size:0.78em;color:var(--muted)">For transactions, not savings</td>
+        <td class="updated">${b['Data Month']||b['Last Updated']||'—'}</td>
+      </tr>`;
+    });
+  }
+
+  tbody.innerHTML = html || `<tr><td colspan="10" style="text-align:center;padding:32px;color:var(--muted)">No data available for this filter.</td></tr>`;
+}
+
+async function load() {
+  try {
+    const url = `https://api.airtable.com/v0/${AT_BASE}/${encodeURIComponent(AT_TABLE)}?sort[0][field]=Bank Name`;
+    const res = await fetch(url, {headers:{Authorization:`Bearer ${AT_KEY}`}});
+    const json = await res.json();
+    allBanks = (json.records||[]).map(r=>r.fields).filter(f=>f['Bank Name']);
+    renderTable();
+  } catch(e) {
+    allBanks = [];
+    renderTable();
+  }
+}
+
+load();
+</script>
+</body>
+</html>

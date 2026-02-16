@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Loan & Lending Rates — BW Rate Watch</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#0C2340;--navy-mid:#1A3A5C;--gold:#C9A84C;--gold-light:#E8C96A;--orange:#D97706;--orange-light:#FFFBEB;--red:#DC2626;--red-light:#FEF2F2;--surface:#F8F9FC;--border:#E5E8EF;--text:#1A2535;--muted:#6B7280;--green:#059669}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'DM Sans',sans-serif;background:var(--surface);color:var(--text);line-height:1.6}
+nav{background:var(--navy);position:sticky;top:0;z-index:100;box-shadow:0 2px 20px rgba(0,0,0,0.3)}
+.nav-inner{max-width:1200px;margin:0 auto;padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:64px}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+.logo-icon{width:36px;height:36px;background:var(--gold);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;color:var(--navy);font-size:1.1em}
+.logo-text{font-weight:700;color:white;font-size:1.1em}.logo-text span{color:var(--gold)}
+.nav-links{display:flex;gap:4px}
+.nav-links a{padding:8px 14px;border-radius:8px;text-decoration:none;color:rgba(255,255,255,0.7);font-size:0.875em;font-weight:500;transition:all 0.2s}
+.nav-links a:hover,.nav-links a.active{color:white;background:rgba(255,255,255,0.1)}
+.nav-links a.active{color:var(--gold-light)}
+.nav-admin{padding:7px 16px;background:rgba(201,168,76,0.15);border:1px solid rgba(201,168,76,0.4);border-radius:8px;color:var(--gold-light);font-size:0.8em;font-weight:600;text-decoration:none}
+
+.page-header{background:linear-gradient(135deg,var(--navy) 0%,var(--navy-mid) 100%);padding:48px 24px;border-bottom:3px solid var(--orange)}
+.page-header-inner{max-width:1200px;margin:0 auto}
+.breadcrumb{font-size:0.78em;color:rgba(255,255,255,0.45);margin-bottom:12px}
+.breadcrumb a{color:rgba(255,255,255,0.45);text-decoration:none}.breadcrumb a:hover{color:white}
+.page-header h1{font-family:'DM Serif Display',serif;font-size:2.2em;color:white;margin-bottom:8px}
+.page-header p{color:rgba(255,255,255,0.6);font-size:1em;max-width:600px;font-weight:300}
+
+.main{max-width:1200px;margin:0 auto;padding:40px 24px}
+
+/* PLR CARDS */
+.plr-strip{display:flex;gap:12px;margin-bottom:28px;flex-wrap:wrap}
+.plr-card{background:white;border:1px solid var(--border);border-radius:12px;padding:16px 20px;flex:1;min-width:160px}
+.plr-card-label{font-size:0.72em;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px}
+.plr-card-val{font-family:'DM Serif Display',serif;font-size:1.7em;color:var(--navy)}
+.plr-card-sub{font-size:0.72em;color:var(--muted);margin-top:2px}
+.plr-card.mopr{border-left:3px solid var(--gold)}
+.plr-card.mopr .plr-card-val{color:var(--gold)}
+
+/* PRODUCT TABS */
+.product-tabs{display:flex;gap:8px;margin-bottom:28px;flex-wrap:wrap;background:white;padding:8px;border-radius:12px;border:1px solid var(--border)}
+.product-tab{padding:9px 18px;border-radius:8px;border:none;font-size:0.83em;font-weight:600;cursor:pointer;transition:all 0.2s;background:transparent;color:var(--muted);font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:6px}
+.product-tab:hover{background:var(--orange-light);color:var(--orange)}
+.product-tab.active{background:var(--orange);color:white;box-shadow:0 2px 8px rgba(217,119,6,0.3)}
+
+/* CALC */
+.calc-bar{background:white;border:1px solid var(--border);border-radius:16px;padding:28px;margin-bottom:28px}
+.calc-bar h3{font-size:1em;font-weight:700;color:var(--navy);margin-bottom:16px}
+.calc-inputs{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:16px}
+.calc-field label{font-size:0.75em;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;display:block;margin-bottom:6px}
+.calc-field input,.calc-field select{width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:0.9em;font-family:'DM Sans',sans-serif;color:var(--text)}
+.calc-field input:focus,.calc-field select:focus{outline:none;border-color:var(--orange)}
+.calc-results{margin-top:20px;padding:20px;background:var(--orange-light);border-radius:12px;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:16px}
+.calc-result-item label{font-size:0.72em;font-weight:600;color:var(--orange);text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:4px}
+.calc-result-item .value{font-family:'DM Serif Display',serif;font-size:1.5em;color:var(--navy)}
+.calc-result-item .sub{font-size:0.75em;color:var(--muted)}
+
+/* TABLE */
+.table-wrap{background:white;border-radius:16px;border:1px solid var(--border);overflow:hidden;overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:700px}
+thead th{background:var(--navy);color:white;padding:14px 16px;text-align:left;font-size:0.75em;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;white-space:nowrap}
+tbody tr{border-bottom:1px solid var(--border);transition:background 0.15s}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:#FFFAF5}
+td{padding:14px 16px;font-size:0.875em;vertical-align:middle}
+.bank-cell{display:flex;align-items:center;gap:10px}
+.bank-avatar{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:0.75em;color:white;flex-shrink:0}
+.bank-name-link{font-weight:600;color:var(--text);text-decoration:none;font-size:0.9em}
+.bank-name-link:hover{color:var(--navy);text-decoration:underline}
+.bank-site{font-size:0.73em;color:var(--muted);text-decoration:none}
+.bank-site:hover{color:var(--navy)}
+.rate-low{font-weight:700;color:var(--green)}
+.badge-low{background:#ECFDF5;color:var(--green);font-size:0.7em;font-weight:700;padding:2px 8px;border-radius:100px;margin-left:4px}
+.rate-high{color:var(--red);font-weight:600}
+.rate-warn{color:var(--orange);font-weight:600}
+.badge-high{background:var(--red-light);color:var(--red);font-size:0.7em;font-weight:700;padding:2px 8px;border-radius:100px;margin-left:4px}
+.rate-normal{color:var(--text)}
+.rate-na{color:#D1D5DB;font-style:italic;font-size:0.85em}
+.updated{font-size:0.72em;color:var(--muted)}
+
+.empty-state{text-align:center;padding:60px 24px;color:var(--muted)}
+.empty-icon{font-size:3em;margin-bottom:12px;opacity:0.4}
+.empty-title{font-size:1.1em;font-weight:600;color:var(--text);margin-bottom:8px}
+.empty-sub{font-size:0.875em;line-height:1.6;max-width:400px;margin:0 auto 20px}
+.empty-link{display:inline-flex;align-items:center;gap:6px;padding:9px 20px;background:var(--navy);color:white;border-radius:8px;text-decoration:none;font-size:0.85em;font-weight:600}
+.spinner{display:inline-block;width:18px;height:18px;border:2px solid var(--border);border-top-color:var(--navy);border-radius:50%;animation:spin 0.8s linear infinite;vertical-align:middle;margin-right:8px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.warning-note{background:var(--red-light);border:1px solid #FECACA;border-radius:12px;padding:14px 18px;margin-bottom:24px;font-size:0.83em;color:#991B1B;line-height:1.6}
+
+.explainer{background:white;border-radius:16px;border:1px solid var(--border);padding:32px;margin-top:32px}
+.explainer h3{font-family:'DM Serif Display',serif;font-size:1.3em;color:var(--navy);margin-bottom:16px}
+.explainer-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:20px}
+.exp-item h4{font-size:0.875em;font-weight:700;color:var(--text);margin-bottom:4px}
+.exp-item p{font-size:0.8em;color:var(--muted);line-height:1.5}
+
+.disclaimer{margin-top:32px;padding:16px 20px;background:white;border-radius:10px;border:1px solid var(--border);font-size:0.78em;color:var(--muted);line-height:1.6}
+@media(max-width:768px){.nav-links{display:none}.plr-strip{gap:8px}}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <a href="index.html" class="logo"><div class="logo-icon">BW</div><div class="logo-text">Rate<span>Watch</span></div></a>
+    <div class="nav-links">
+      <a href="index.html">Overview</a>
+      <a href="savings.html">Savings</a>
+      <a href="fixed-deposits.html">Fixed Deposits</a>
+      <a href="loans.html" class="active">Loans</a>
+    </div>
+    <a href="admin.html" class="nav-admin">⚙ Admin</a>
+  </div>
+</nav>
+
+<div class="page-header">
+  <div class="page-header-inner">
+    <div class="breadcrumb"><a href="index.html">Home</a> / Loan Rates</div>
+    <h1>Loan & Lending Rates</h1>
+    <p>All rates shown are the actual final rates you'll pay — not confusing "PLR + X%" formulas. Compare across all Botswana banks.</p>
+  </div>
+</div>
+
+<div class="main">
+
+  <div class="plr-strip" id="plrStrip">
+    <div class="plr-card mopr">
+      <div class="plr-card-label">MoPR (Bank of Botswana)</div>
+      <div class="plr-card-val">3.50%</div>
+      <div class="plr-card-sub">Base rate for the entire economy</div>
+    </div>
+  </div>
+
+  <div class="product-tabs">
+    <button class="product-tab active" onclick="setProduct('mortgage',this)">🏠 Mortgage</button>
+    <button class="product-tab" onclick="setProduct('personal',this)">👤 Personal Loan</button>
+    <button class="product-tab" onclick="setProduct('car',this)">🚗 Car Finance</button>
+    <button class="product-tab" onclick="setProduct('overdraft',this)">🔄 Overdraft</button>
+    <button class="product-tab" onclick="setProduct('credit_card',this)">💳 Credit Card</button>
+    <button class="product-tab" onclick="setProduct('all',this)">📋 All Products</button>
+  </div>
+
+  <div class="calc-bar">
+    <h3>💰 Monthly Repayment Calculator</h3>
+    <div class="calc-inputs">
+      <div class="calc-field">
+        <label>Loan Amount (P)</label>
+        <input type="number" id="calcAmount" value="200000" step="10000" oninput="calculateLoan()">
+      </div>
+      <div class="calc-field">
+        <label>Annual Rate (%)</label>
+        <input type="number" id="calcRate" value="8.01" step="0.01" oninput="calculateLoan()">
+      </div>
+      <div class="calc-field">
+        <label>Loan Term</label>
+        <select id="calcTerm" onchange="calculateLoan()">
+          <option value="1">1 Year</option>
+          <option value="2">2 Years</option>
+          <option value="3">3 Years</option>
+          <option value="5">5 Years</option>
+          <option value="10">10 Years</option>
+          <option value="15">15 Years</option>
+          <option value="20" selected>20 Years</option>
+          <option value="25">25 Years</option>
+          <option value="30">30 Years</option>
+        </select>
+      </div>
+    </div>
+    <div class="calc-results">
+      <div class="calc-result-item"><label>Monthly Payment</label><div class="value" id="calcMonthly">—</div><div class="sub">Per month</div></div>
+      <div class="calc-result-item"><label>Total Repaid</label><div class="value" id="calcTotal">—</div><div class="sub">Over full term</div></div>
+      <div class="calc-result-item"><label>Total Interest</label><div class="value" id="calcInterest">—</div><div class="sub">Cost of borrowing</div></div>
+    </div>
+  </div>
+
+  <div id="warningNote" style="display:none" class="warning-note">
+    ⚠️ Some rates shown are above 25%. Always read the full credit agreement and understand the total cost of the loan before signing. Use the calculator above to see exactly what you'll repay.
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead id="tableHead"><tr><th colspan="7"><span class="spinner"></span> Loading...</th></tr></thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
+
+  <div class="explainer">
+    <h3>Understanding Lending Products</h3>
+    <div class="explainer-grid">
+      <div class="exp-item"><h4>🏠 Mortgage</h4><p>Secured by property. Longest term (10–30 years), lowest rate. For buying or building a home.</p></div>
+      <div class="exp-item"><h4>👤 Personal Loan</h4><p>No collateral required. Higher rate than mortgage because bank has more risk. For any personal use.</p></div>
+      <div class="exp-item"><h4>🚗 Car Finance</h4><p>Secured against the vehicle. Lower rate than personal loan. Sometimes called VAF or Eezi Auto (BSB).</p></div>
+      <div class="exp-item"><h4>🔄 Overdraft</h4><p>Revolving credit on your current account. You only pay interest on what you use. Rate varies by bank.</p></div>
+      <div class="exp-item"><h4>💳 Credit Card</h4><p>Only charged interest on unpaid balance. Highest rates — always pay in full monthly if possible.</p></div>
+      <div class="exp-item"><h4>📊 What is PLR?</h4><p>Prime Lending Rate — each bank's own base lending rate. All loan rates are set above the PLR. All rates on this site are already calculated to their final value.</p></div>
+    </div>
+  </div>
+
+  <div class="disclaimer">⚠️ Rates shown are the final annual rates you'll pay — PLR spreads have already been calculated. These are indicative rates from officially published schedules. Actual rates may vary based on your credit profile. Always confirm directly with the bank. Clicking a bank name opens their official website.</div>
+</div>
+
+<script>
+const AT_KEY='patBhLP5wtc8YTY0A.30baf2ceb238a472b12ac9b5db2d366ad0f68a1f6c9363ec15ad96357339053a';
+const AT_BASE='appHKaTJz3Bx550eb';
+const AT_TABLE='Bank Interest Rates';
+const BANK_COLORS=['#0C2340','#1A3A5C','#C9A84C','#059669','#2563EB','#D97706','#7C3AED','#DC2626','#0891B2','#16A34A','#EA580C'];
+
+let allBanks=[];
+let currentProduct='mortgage';
+
+function bankColor(n){let h=0;for(const c of n)h=(h*31+c.charCodeAt(0))&0xFFFF;return BANK_COLORS[h%BANK_COLORS.length];}
+function bankInitials(n){return(n||'??').split(' ').filter(w=>/^[A-Z]/.test(w)).map(w=>w[0]).join('').substring(0,3)||n.substring(0,2).toUpperCase();}
+function fmt(v){const n=parseFloat(v);return isNaN(n)?null:n.toFixed(2)+'%';}
+function rateClass(v){const n=parseFloat(v);if(isNaN(n))return'rate-na';if(n>25)return'rate-high';if(n>18)return'rate-warn';return'rate-normal';}
+
+const PRODUCT_CONFIG = {
+  mortgage:  { label:'Mortgage / Home Loan', minKey:'Mortgage Rate Min', maxKey:'Mortgage Rate Max', icon:'🏠', desc:'Secured by property', sortBy:'min' },
+  personal:  { label:'Unsecured Personal Loan', minKey:'Personal Loan Min', maxKey:'Personal Loan Max', icon:'👤', desc:'No collateral required', sortBy:'min' },
+  car:       { label:'Car Finance / Eezi Auto / VAF', minKey:'Car Loan Min', maxKey:'Car Loan Max', icon:'🚗', desc:'Vehicle as collateral', sortBy:'min' },
+  overdraft: { label:'Overdraft Facility', minKey:'Overdraft Min', maxKey:'Overdraft Max', icon:'🔄', desc:'Revolving credit line', sortBy:'min' },
+  credit_card:{ label:'Credit Card', minKey:'Credit Card Rate Min', maxKey:'Credit Card Rate Max', icon:'💳', desc:'Only on unpaid balance', sortBy:'min' },
+  all: null
+};
+
+function setProduct(p, el) {
+  currentProduct = p;
+  document.querySelectorAll('.product-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  renderTable();
+}
+
+function renderPLRCards(banks) {
+  const strip = document.getElementById('plrStrip');
+  let html = `<div class="plr-card mopr"><div class="plr-card-label">MoPR (Bank of Botswana)</div><div class="plr-card-val">3.50%</div><div class="plr-card-sub">Economy base rate</div></div>`;
+  banks.forEach(b => {
+    if (!b['Prime Lending Rate']) return;
+    const name = b['Bank Name'];
+    const initials = bankInitials(name);
+    const color = bankColor(name);
+    const website = b['Website']||'#';
+    html += `<div class="plr-card" style="border-left:3px solid ${color}">
+      <div class="plr-card-label"><a href="${website}" target="_blank" style="color:inherit;text-decoration:none">${initials} PLR</a></div>
+      <div class="plr-card-val">${parseFloat(b['Prime Lending Rate']).toFixed(2)}%</div>
+      <div class="plr-card-sub">${b['Data Month']||'—'}</div>
+    </div>`;
+  });
+  strip.innerHTML = html;
+}
+
+function renderTable() {
+  const thead = document.getElementById('tableHead');
+  const tbody = document.getElementById('tableBody');
+  const warnEl = document.getElementById('warningNote');
+
+  if (!allBanks.length) {
+    thead.innerHTML='<tr><th>Bank</th><th>Min Rate</th><th>Max Rate</th><th>PLR</th><th>Notes</th><th>Updated</th></tr>';
+    tbody.innerHTML=`<tr><td colspan="6"><div class="empty-state">
+      <div class="empty-icon">📭</div>
+      <div class="empty-title">No bank data loaded yet</div>
+      <div class="empty-sub">Upload bank rate PDFs via the admin page to see lending rate comparisons here.</div>
+      <a href="admin.html" class="empty-link">⚙ Upload Bank Data</a>
+    </div></td></tr>`;
+    warnEl.style.display='none';
+    return;
+  }
+
+  if (currentProduct === 'all') {
+    // All products overview
+    thead.innerHTML=`<tr><th>Bank</th><th>Mortgage</th><th>Personal Loan</th><th>Car Finance</th><th>Overdraft</th><th>Credit Card</th><th>Updated</th></tr>`;
+    let html='';
+    let hasHigh=false;
+    allBanks.forEach(b=>{
+      const name=b['Bank Name']; const website=b['Website']||'#';
+      const mort=fmt(b['Mortgage Rate Min'])&&fmt(b['Mortgage Rate Max'])?`${fmt(b['Mortgage Rate Min'])} – ${fmt(b['Mortgage Rate Max'])}`:fmt(b['Mortgage Rate Min'])||'<span class="rate-na">—</span>';
+      const pers=fmt(b['Personal Loan Min'])&&fmt(b['Personal Loan Max'])?`${fmt(b['Personal Loan Min'])} – ${fmt(b['Personal Loan Max'])}`:fmt(b['Personal Loan Min'])||'<span class="rate-na">—</span>';
+      const car=fmt(b['Car Loan Min'])&&fmt(b['Car Loan Max'])?`${fmt(b['Car Loan Min'])} – ${fmt(b['Car Loan Max'])}`:fmt(b['Car Loan Min'])||'<span class="rate-na">—</span>';
+      const od=fmt(b['Overdraft Min'])&&fmt(b['Overdraft Max'])?`${fmt(b['Overdraft Min'])} – ${fmt(b['Overdraft Max'])}`:fmt(b['Overdraft Min'])||'<span class="rate-na">—</span>';
+      const cc=fmt(b['Credit Card Rate Min'])&&fmt(b['Credit Card Rate Max'])?`${fmt(b['Credit Card Rate Min'])} – ${fmt(b['Credit Card Rate Max'])}`:fmt(b['Credit Card Rate Max'])||'<span class="rate-na">—</span>';
+      const maxAllRates=[b['Personal Loan Max'],b['Credit Card Rate Max'],b['Overdraft Max']].map(v=>parseFloat(v)).filter(v=>!isNaN(v));
+      if(maxAllRates.some(v=>v>25))hasHigh=true;
+      html+=`<tr>
+        <td><div class="bank-cell">
+          <div class="bank-avatar" style="background:${bankColor(name)}">${bankInitials(name)}</div>
+          <div><div><a href="${website}" target="_blank" class="bank-name-link">${name}</a></div><a href="${website}" target="_blank" class="bank-site">🔗 Visit website</a></div>
+        </div></td>
+        <td>${mort}</td>
+        <td class="${rateClass(b['Personal Loan Max'])}">${pers}</td>
+        <td>${car}</td>
+        <td class="${rateClass(b['Overdraft Max'])}">${od}</td>
+        <td class="${rateClass(b['Credit Card Rate Max'])}">${cc}</td>
+        <td class="updated">${b['Data Month']||b['Last Updated']||'—'}</td>
+      </tr>`;
+    });
+    tbody.innerHTML=html;
+    warnEl.style.display=hasHigh?'block':'none';
+    return;
+  }
+
+  const cfg = PRODUCT_CONFIG[currentProduct];
+  thead.innerHTML=`<tr><th>Bank</th><th>Min Rate</th><th>Max Rate</th><th>PLR</th><th>Notes</th><th>Updated</th></tr>`;
+
+  const sorted=[...allBanks].sort((a,b)=>{
+    const ra=parseFloat(a[cfg.minKey])||999;
+    const rb=parseFloat(b[cfg.minKey])||999;
+    return ra-rb;
+  });
+
+  const bestRate=Math.min(...sorted.map(b=>parseFloat(b[cfg.minKey])).filter(v=>!isNaN(v)));
+  const allMaxRates=sorted.map(b=>parseFloat(b[cfg.maxKey])).filter(v=>!isNaN(v));
+  const hasHigh=allMaxRates.some(v=>v>25);
+  warnEl.style.display=hasHigh?'block':'none';
+
+  let html='';
+  sorted.forEach(b=>{
+    const name=b['Bank Name']; const website=b['Website']||'#';
+    const minR=fmt(b[cfg.minKey]); const maxR=fmt(b[cfg.maxKey]);
+    const plr=b['Prime Lending Rate']?parseFloat(b['Prime Lending Rate']).toFixed(2)+'%':'—';
+    const isLowest=parseFloat(b[cfg.minKey])===bestRate&&!isNaN(bestRate)&&minR;
+    const maxNum=parseFloat(b[cfg.maxKey]);
+    const maxClass=rateClass(b[cfg.maxKey]);
+
+    html+=`<tr>
+      <td><div class="bank-cell">
+        <div class="bank-avatar" style="background:${bankColor(name)}">${bankInitials(name)}</div>
+        <div><div><a href="${website}" target="_blank" class="bank-name-link">${name}</a></div><a href="${website}" target="_blank" class="bank-site">🔗 Visit website</a></div>
+      </div></td>
+      <td class="${isLowest?'rate-low':'rate-normal'}">${minR||'<span class="rate-na">—</span>'}${isLowest?'<span class="badge-low">LOWEST</span>':''}</td>
+      <td class="${maxClass}">${maxR||'<span class="rate-na">—</span>'}${maxNum>25?'<span class="badge-high">HIGH</span>':''}</td>
+      <td>${plr}</td>
+      <td style="font-size:0.78em;color:var(--muted)">${cfg.desc}</td>
+      <td class="updated">${b['Data Month']||b['Last Updated']||'—'}</td>
+    </tr>`;
+  });
+
+  tbody.innerHTML=html||'<tr><td colspan="6" style="text-align:center;padding:32px;color:var(--muted)">No data for this product.</td></tr>';
+}
+
+function calculateLoan() {
+  const amount=parseFloat(document.getElementById('calcAmount').value)||0;
+  const annualRate=parseFloat(document.getElementById('calcRate').value)||0;
+  const years=parseFloat(document.getElementById('calcTerm').value)||1;
+  const r=annualRate/100/12;
+  const n=years*12;
+  if(r===0){
+    const monthly=amount/n;
+    document.getElementById('calcMonthly').textContent='P '+monthly.toFixed(2);
+    document.getElementById('calcTotal').textContent='P '+amount.toFixed(2);
+    document.getElementById('calcInterest').textContent='P 0.00';
+    return;
+  }
+  const monthly=amount*(r*Math.pow(1+r,n))/(Math.pow(1+r,n)-1);
+  const total=monthly*n;
+  const interest=total-amount;
+  const P=v=>v.toLocaleString('en-BW',{minimumFractionDigits:2,maximumFractionDigits:2});
+  document.getElementById('calcMonthly').textContent='P '+P(monthly);
+  document.getElementById('calcTotal').textContent='P '+P(total);
+  document.getElementById('calcInterest').textContent='P '+P(interest);
+}
+
+async function load() {
+  try {
+    const url=`https://api.airtable.com/v0/${AT_BASE}/${encodeURIComponent(AT_TABLE)}?sort[0][field]=Bank Name`;
+    const res=await fetch(url,{headers:{Authorization:`Bearer ${AT_KEY}`}});
+    const json=await res.json();
+    allBanks=(json.records||[]).map(r=>r.fields).filter(f=>f['Bank Name']);
+    renderPLRCards(allBanks);
+    renderTable();
+  } catch(e){
+    allBanks=[];
+    renderTable();
+  }
+}
+
+load();
+calculateLoan();
+</script>
+</body>
+</html>

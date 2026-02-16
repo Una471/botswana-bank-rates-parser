@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fixed Deposit Rates — BW Rate Watch</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#0C2340;--navy-mid:#1A3A5C;--gold:#C9A84C;--gold-light:#E8C96A;--blue:#2563EB;--blue-light:#EFF6FF;--surface:#F8F9FC;--border:#E5E8EF;--text:#1A2535;--muted:#6B7280;--green:#059669}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'DM Sans',sans-serif;background:var(--surface);color:var(--text);line-height:1.6}
+nav{background:var(--navy);position:sticky;top:0;z-index:100;box-shadow:0 2px 20px rgba(0,0,0,0.3)}
+.nav-inner{max-width:1200px;margin:0 auto;padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:64px}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+.logo-icon{width:36px;height:36px;background:var(--gold);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;color:var(--navy);font-size:1.1em}
+.logo-text{font-weight:700;color:white;font-size:1.1em}.logo-text span{color:var(--gold)}
+.nav-links{display:flex;gap:4px}
+.nav-links a{padding:8px 14px;border-radius:8px;text-decoration:none;color:rgba(255,255,255,0.7);font-size:0.875em;font-weight:500;transition:all 0.2s}
+.nav-links a:hover,.nav-links a.active{color:white;background:rgba(255,255,255,0.1)}
+.nav-links a.active{color:var(--gold-light)}
+.nav-admin{padding:7px 16px;background:rgba(201,168,76,0.15);border:1px solid rgba(201,168,76,0.4);border-radius:8px;color:var(--gold-light);font-size:0.8em;font-weight:600;text-decoration:none}
+
+.page-header{background:linear-gradient(135deg,var(--navy) 0%,var(--navy-mid) 100%);padding:48px 24px;border-bottom:3px solid var(--blue)}
+.page-header-inner{max-width:1200px;margin:0 auto}
+.breadcrumb{font-size:0.78em;color:rgba(255,255,255,0.45);margin-bottom:12px}
+.breadcrumb a{color:rgba(255,255,255,0.45);text-decoration:none}.breadcrumb a:hover{color:white}
+.page-header h1{font-family:'DM Serif Display',serif;font-size:2.2em;color:white;margin-bottom:8px}
+.page-header p{color:rgba(255,255,255,0.6);font-size:1em;max-width:600px;font-weight:300}
+
+.main{max-width:1200px;margin:0 auto;padding:40px 24px}
+
+/* TERM TABS */
+.term-tabs{display:flex;gap:8px;margin-bottom:28px;flex-wrap:wrap;background:white;padding:8px;border-radius:12px;border:1px solid var(--border)}
+.term-tab{padding:9px 20px;border-radius:8px;border:none;font-size:0.875em;font-weight:600;cursor:pointer;transition:all 0.2s;background:transparent;color:var(--muted);font-family:'DM Sans',sans-serif}
+.term-tab:hover{background:var(--blue-light);color:var(--blue)}
+.term-tab.active{background:var(--blue);color:white;box-shadow:0 2px 8px rgba(37,99,235,0.3)}
+
+/* CALCULATOR */
+.calc-bar{background:white;border:1px solid var(--border);border-radius:16px;padding:28px;margin-bottom:28px}
+.calc-bar h3{font-size:1em;font-weight:700;color:var(--navy);margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.calc-inputs{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px}
+.calc-field label{font-size:0.75em;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;display:block;margin-bottom:6px}
+.calc-field input,.calc-field select{width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:0.9em;font-family:'DM Sans',sans-serif;color:var(--text);background:white}
+.calc-field input:focus,.calc-field select:focus{outline:none;border-color:var(--blue)}
+.calc-results{margin-top:20px;padding:20px;background:var(--blue-light);border-radius:12px;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:16px}
+.calc-result-item label{font-size:0.72em;font-weight:600;color:var(--blue);text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:4px}
+.calc-result-item .value{font-family:'DM Serif Display',serif;font-size:1.6em;color:var(--navy)}
+.calc-result-item .sub{font-size:0.75em;color:var(--muted)}
+
+/* TABLE */
+.table-wrap{background:white;border-radius:16px;border:1px solid var(--border);overflow:hidden;overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:700px}
+thead th{background:var(--navy);color:white;padding:14px 16px;text-align:left;font-size:0.75em;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;white-space:nowrap}
+tbody tr{border-bottom:1px solid var(--border);transition:background 0.15s}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:#FAFBFF}
+td{padding:14px 16px;font-size:0.875em;vertical-align:middle}
+.bank-cell{display:flex;align-items:center;gap:10px}
+.bank-avatar{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:0.75em;color:white;flex-shrink:0}
+.bank-name-link{font-weight:600;color:var(--text);text-decoration:none;font-size:0.9em}
+.bank-name-link:hover{color:var(--navy);text-decoration:underline}
+.bank-site{font-size:0.73em;color:var(--muted);text-decoration:none}
+.bank-site:hover{color:var(--navy)}
+.rate-best{font-weight:700;color:var(--green)}
+.badge-best{background:#ECFDF5;color:var(--green);font-size:0.7em;font-weight:700;padding:2px 8px;border-radius:100px;margin-left:4px}
+.rate-normal{color:var(--text)}
+.rate-na{color:#D1D5DB;font-style:italic;font-size:0.85em}
+.rate-pair{font-size:0.78em;color:var(--muted);margin-top:2px}
+.min-bal{font-size:0.8em;color:var(--muted)}
+.updated{font-size:0.72em;color:var(--muted)}
+
+.empty-state{text-align:center;padding:60px 24px;color:var(--muted)}
+.empty-icon{font-size:3em;margin-bottom:12px;opacity:0.4}
+.empty-title{font-size:1.1em;font-weight:600;color:var(--text);margin-bottom:8px}
+.empty-sub{font-size:0.875em;line-height:1.6;max-width:400px;margin:0 auto 20px}
+.empty-link{display:inline-flex;align-items:center;gap:6px;padding:9px 20px;background:var(--navy);color:white;border-radius:8px;text-decoration:none;font-size:0.85em;font-weight:600}
+.spinner{display:inline-block;width:18px;height:18px;border:2px solid var(--border);border-top-color:var(--navy);border-radius:50%;animation:spin 0.8s linear infinite;vertical-align:middle;margin-right:8px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.disclaimer{margin-top:32px;padding:16px 20px;background:white;border-radius:10px;border:1px solid var(--border);font-size:0.78em;color:var(--muted);line-height:1.6}
+@media(max-width:768px){.nav-links{display:none}}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <a href="index.html" class="logo"><div class="logo-icon">BW</div><div class="logo-text">Rate<span>Watch</span></div></a>
+    <div class="nav-links">
+      <a href="index.html">Overview</a>
+      <a href="savings.html">Savings</a>
+      <a href="fixed-deposits.html" class="active">Fixed Deposits</a>
+      <a href="loans.html">Loans</a>
+    </div>
+    <a href="admin.html" class="nav-admin">⚙ Admin</a>
+  </div>
+</nav>
+
+<div class="page-header">
+  <div class="page-header-inner">
+    <div class="breadcrumb"><a href="index.html">Home</a> / Fixed Deposits</div>
+    <h1>Fixed Deposit Rates</h1>
+    <p>Lock your money for a fixed term and earn guaranteed returns. Compare rates from all Botswana banks by term.</p>
+  </div>
+</div>
+
+<div class="main">
+
+  <div class="term-tabs">
+    <button class="term-tab" onclick="setTerm('91D',this)">91 Days</button>
+    <button class="term-tab active" onclick="setTerm('3M',this)">3 Months</button>
+    <button class="term-tab" onclick="setTerm('6M',this)">6 Months</button>
+    <button class="term-tab" onclick="setTerm('12M',this)">12 Months</button>
+    <button class="term-tab" onclick="setTerm('24M',this)">24 Months</button>
+    <button class="term-tab" onclick="setTerm('Over24M',this)">Over 24 Months</button>
+  </div>
+
+  <div class="calc-bar">
+    <h3>🧮 FD Calculator</h3>
+    <div class="calc-inputs">
+      <div class="calc-field">
+        <label>Principal Amount (P)</label>
+        <input type="number" id="calcPrincipal" value="10000" min="1000" step="1000" oninput="calculateFD()">
+      </div>
+      <div class="calc-field">
+        <label>Annual Rate (%)</label>
+        <input type="number" id="calcRate" value="3.50" step="0.01" min="0" oninput="calculateFD()">
+      </div>
+      <div class="calc-field">
+        <label>Term</label>
+        <select id="calcTerm" onchange="calculateFD()">
+          <option value="0.25">3 Months (91 days)</option>
+          <option value="0.5">6 Months</option>
+          <option value="1" selected>12 Months</option>
+          <option value="2">24 Months</option>
+          <option value="3">Over 24 Months</option>
+        </select>
+      </div>
+    </div>
+    <div class="calc-results">
+      <div class="calc-result-item"><label>Interest Earned</label><div class="value" id="calcInterest">—</div><div class="sub">At maturity</div></div>
+      <div class="calc-result-item"><label>Total at Maturity</label><div class="value" id="calcTotal">—</div><div class="sub">Principal + interest</div></div>
+      <div class="calc-result-item"><label>Monthly Equivalent</label><div class="value" id="calcMonthly">—</div><div class="sub">Interest per month</div></div>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead id="tableHead">
+        <tr><th colspan="7"><span class="spinner"></span> Loading...</th></tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
+
+  <div class="disclaimer">⚠️ Minimum deposit is typically P1,000 for fixed deposits. Early withdrawal before maturity usually attracts a penalty and lower rate. Always confirm terms directly with the bank before investing. Clicking a bank name opens their official website.</div>
+</div>
+
+<script>
+const AT_KEY='patBhLP5wtc8YTY0A.30baf2ceb238a472b12ac9b5db2d366ad0f68a1f6c9363ec15ad96357339053a';
+const AT_BASE='appHKaTJz3Bx550eb';
+const AT_TABLE='Bank Interest Rates';
+const BANK_COLORS=['#0C2340','#1A3A5C','#C9A84C','#059669','#2563EB','#D97706','#7C3AED','#DC2626','#0891B2','#16A34A','#EA580C'];
+
+let allBanks=[];
+let currentTerm='3M';
+
+function bankColor(n){let h=0;for(const c of n)h=(h*31+c.charCodeAt(0))&0xFFFF;return BANK_COLORS[h%BANK_COLORS.length];}
+function bankInitials(n){return(n||'??').split(' ').filter(w=>/^[A-Z]/.test(w)).map(w=>w[0]).join('').substring(0,3)||n.substring(0,2).toUpperCase();}
+function fmt(v){const n=parseFloat(v);return isNaN(n)?null:n.toFixed(2)+'%';}
+
+const TERM_CONFIG = {
+  '91D': { label:'91-Day Fixed Deposit', nomMin:'FD 91D Nominal Min', nomMax:'FD 91D Nominal Max', effMin:'FD 91D Effective Min', effMax:'FD 91D Effective Max', months: 3 },
+  '3M':  { label:'3-Month Fixed Deposit', nomMin:'FD 3M Nominal Min', nomMax:'FD 3M Nominal Max', effMin:'FD 3M Effective Min', effMax:'FD 3M Effective Max', months: 3 },
+  '6M':  { label:'6-Month Fixed Deposit', nomMin:'FD 6M Nominal Min', nomMax:'FD 6M Nominal Max', effMin:'FD 6M Effective Min', effMax:'FD 6M Effective Max', months: 6 },
+  '12M': { label:'12-Month Fixed Deposit', nomMin:'FD 12M Nominal Min', nomMax:'FD 12M Nominal Max', effMin:'FD 12M Effective Min', effMax:'FD 12M Effective Max', months: 12 },
+  '24M': { label:'24-Month Fixed Deposit', nomMin:'FD 24M Nominal Min', nomMax:'FD 24M Nominal Max', effMin:'FD 24M Effective Min', effMax:'FD 24M Effective Max', months: 24 },
+  'Over24M': { label:'Over 24-Month Fixed Deposit', nomMin:'FD Over24M Nominal Min', nomMax:'FD Over24M Nominal Max', effMin:'FD Over24M Effective Min', effMax:'FD Over24M Effective Max', months: 30 },
+};
+
+function setTerm(term, el) {
+  currentTerm = term;
+  document.querySelectorAll('.term-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  // Update calculator term
+  const termMonthsMap = {'91D':'0.25','3M':'0.25','6M':'0.5','12M':'1','24M':'2','Over24M':'3'};
+  document.getElementById('calcTerm').value = termMonthsMap[term] || '1';
+  calculateFD();
+  renderTable();
+}
+
+function calculateFD() {
+  const principal = parseFloat(document.getElementById('calcPrincipal').value) || 0;
+  const rate = parseFloat(document.getElementById('calcRate').value) || 0;
+  const years = parseFloat(document.getElementById('calcTerm').value) || 1;
+  const interest = principal * (rate/100) * years;
+  const total = principal + interest;
+  const monthly = interest / (years * 12);
+  document.getElementById('calcInterest').textContent = 'P ' + interest.toLocaleString('en-BW',{minimumFractionDigits:2,maximumFractionDigits:2});
+  document.getElementById('calcTotal').textContent = 'P ' + total.toLocaleString('en-BW',{minimumFractionDigits:2,maximumFractionDigits:2});
+  document.getElementById('calcMonthly').textContent = 'P ' + monthly.toLocaleString('en-BW',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+
+function renderTable() {
+  const cfg = TERM_CONFIG[currentTerm];
+  const thead = document.getElementById('tableHead');
+  const tbody = document.getElementById('tableBody');
+
+  if (!allBanks.length) {
+    thead.innerHTML='<tr><th>Bank</th><th>Nominal Min</th><th>Nominal Max</th><th>Effective Min</th><th>Effective Max</th><th>Min Balance</th><th>Updated</th></tr>';
+    tbody.innerHTML=`<tr><td colspan="7"><div class="empty-state">
+      <div class="empty-icon">📭</div>
+      <div class="empty-title">No bank data loaded yet</div>
+      <div class="empty-sub">Upload bank rate PDFs via the admin page to populate this comparison.</div>
+      <a href="admin.html" class="empty-link">⚙ Upload Bank Data</a>
+    </div></td></tr>`;
+    return;
+  }
+
+  thead.innerHTML=`<tr>
+    <th>Bank</th>
+    <th>Nominal Min</th>
+    <th>Nominal Max ▼</th>
+    <th>Effective Min</th>
+    <th>Effective Max</th>
+    <th>Min. Balance</th>
+    <th>Updated</th>
+  </tr>`;
+
+  const sorted = [...allBanks].sort((a,b)=>{
+    const ra=parseFloat(a[cfg.nomMax])||0;
+    const rb=parseFloat(b[cfg.nomMax])||0;
+    return rb-ra;
+  });
+
+  const bestRate = Math.max(...sorted.map(b=>parseFloat(b[cfg.nomMax])).filter(v=>!isNaN(v)));
+  let html='';
+
+  sorted.forEach((b,i)=>{
+    const name=b['Bank Name']; const website=b['Website']||'#';
+    const nomMin=fmt(b[cfg.nomMin]); const nomMax=fmt(b[cfg.nomMax]);
+    const effMin=fmt(b[cfg.effMin]); const effMax=fmt(b[cfg.effMax]);
+    const minBal=b['FD Minimum Balance'];
+    const isBest=parseFloat(b[cfg.nomMax])===bestRate && !isNaN(bestRate) && nomMax;
+
+    html+=`<tr>
+      <td><div class="bank-cell">
+        <div class="bank-avatar" style="background:${bankColor(name)}">${bankInitials(name)}</div>
+        <div>
+          <div><a href="${website}" target="_blank" class="bank-name-link">${name}</a></div>
+          <a href="${website}" target="_blank" class="bank-site">🔗 Visit website</a>
+        </div>
+      </div></td>
+      <td>${nomMin||'<span class="rate-na">—</span>'}</td>
+      <td class="${isBest?'rate-best':'rate-normal'}">${nomMax||'<span class="rate-na">—</span>'}${isBest?'<span class="badge-best">BEST</span>':''}</td>
+      <td>${effMin||'<span class="rate-na">—</span>'}</td>
+      <td>${effMax||'<span class="rate-na">—</span>'}</td>
+      <td class="min-bal">${minBal?'P'+parseInt(minBal).toLocaleString():'P1,000'}</td>
+      <td class="updated">${b['Data Month']||b['Last Updated']||'—'}</td>
+    </tr>`;
+  });
+
+  tbody.innerHTML=html;
+}
+
+async function load() {
+  try {
+    const url=`https://api.airtable.com/v0/${AT_BASE}/${encodeURIComponent(AT_TABLE)}?sort[0][field]=Bank Name`;
+    const res=await fetch(url,{headers:{Authorization:`Bearer ${AT_KEY}`}});
+    const json=await res.json();
+    allBanks=(json.records||[]).map(r=>r.fields).filter(f=>f['Bank Name']);
+    renderTable();
+    calculateFD();
+    // Auto-set calc rate to best available rate for current term
+    const cfg=TERM_CONFIG[currentTerm];
+    const best=Math.max(...allBanks.map(b=>parseFloat(b[cfg.nomMax])).filter(v=>!isNaN(v)));
+    if(!isNaN(best)) document.getElementById('calcRate').value=best.toFixed(2);
+    calculateFD();
+  } catch(e){
+    allBanks=[]; renderTable();
+  }
+}
+
+load();
+calculateFD();
+</script>
+</body>
+</html>

@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard — BW Bank Rates</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f7fa; }
+
+        .header {
+            background: linear-gradient(135deg, #0C2340 0%, #1a3a5c 100%);
+            color: white; padding: 22px 30px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+        }
+        .header-content { max-width: 1400px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
+        .header h1 { font-size: 1.5em; }
+        .header-actions { display: flex; gap: 10px; align-items: center; }
+        .nav-btn {
+            padding: 8px 20px; background: rgba(255,255,255,0.12); border: 1.5px solid rgba(255,255,255,0.3);
+            color: white; border-radius: 20px; cursor: pointer; font-size: 0.88em; text-decoration: none;
+            display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s;
+        }
+        .nav-btn:hover { background: rgba(255,255,255,0.22); }
+        .nav-btn.gold { background: #C9A84C; border-color: #C9A84C; color: #0C2340; font-weight: 700; }
+
+        .container { max-width: 1400px; margin: 32px auto; padding: 0 24px; }
+
+        .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .stat-card { background: white; padding: 24px 28px; border-radius: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); border-left: 4px solid #C9A84C; }
+        .stat-card h3 { color: #888; font-size: 0.78em; text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 8px; }
+        .stat-card .number { font-size: 2.2em; font-weight: 800; color: #0C2340; }
+        .stat-card .sub { font-size: 0.78em; color: #aaa; margin-top: 4px; }
+
+        /* Upload */
+        .upload-section { background: white; border-radius: 16px; padding: 36px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); margin-bottom: 28px; }
+        .upload-section h2 { margin-bottom: 20px; font-size: 1.15em; color: #0C2340; }
+        .upload-zone {
+            border: 2.5px dashed #C9A84C; border-radius: 14px; padding: 52px;
+            text-align: center; transition: all 0.3s; cursor: pointer;
+        }
+        .upload-zone:hover, .upload-zone.dragover { background: rgba(201,168,76,0.06); border-color: #a07c28; }
+        .upload-icon { font-size: 3.5em; color: #C9A84C; margin-bottom: 14px; }
+        .upload-text { font-size: 1.1em; font-weight: 600; color: #333; margin-bottom: 6px; }
+        .upload-subtext { color: #999; font-size: 0.875em; }
+        #fileInput { display: none; }
+        .progress-bar { width: 100%; height: 24px; background: #f0f0f0; border-radius: 12px; overflow: hidden; margin-top: 20px; display: none; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, #0C2340, #C9A84C); width: 0%; transition: width 0.4s; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 0.82em; }
+
+        /* Preview */
+        .preview-section { background: white; border-radius: 16px; padding: 36px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); margin-bottom: 28px; display: none; }
+        .preview-section.show { display: block; }
+        .preview-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
+        .preview-header h2 { font-size: 1.15em; color: #0C2340; }
+        .action-buttons { display: flex; gap: 10px; }
+        .btn { padding: 10px 24px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.88em; transition: all 0.2s; }
+        .btn-approve { background: #059669; color: white; }
+        .btn-approve:hover { background: #047857; }
+        .btn-reject { background: #DC2626; color: white; }
+        .btn-reject:hover { background: #B91C1C; }
+        .btn-edit { background: #F59E0B; color: #1A2535; }
+        .btn-edit:hover { background: #D97706; }
+
+        .bank-name-highlight {
+            background: linear-gradient(135deg, #0C2340, #1a3a5c);
+            color: white; padding: 18px 24px; border-radius: 12px; margin-bottom: 20px;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .bank-name-highlight h3 { font-size: 1.4em; }
+        .bank-name-highlight p { opacity: 0.6; font-size: 0.85em; margin-top: 3px; }
+        .bank-name-highlight .plr-display { text-align: right; }
+        .bank-name-highlight .plr-value { font-size: 1.8em; font-weight: 800; color: #C9A84C; }
+        .bank-name-highlight .plr-label { font-size: 0.72em; opacity: 0.6; letter-spacing: 0.06em; text-transform: uppercase; }
+
+        /* Section dividers in preview table */
+        .section-row td {
+            background: #0C2340; color: white; font-size: 0.72em; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.1em; padding: 8px 15px;
+        }
+
+        .preview-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        .preview-table th, .preview-table td { padding: 11px 15px; text-align: left; border-bottom: 1px solid #f0f0f0; }
+        .preview-table th { background: #f8f9fa; font-weight: 600; color: #444; font-size: 0.875em; width: 40%; }
+        .preview-table td { color: #555; font-size: 0.875em; }
+        .preview-table tr:hover td, .preview-table tr:hover th { background: #f8f9fa; }
+        .field-empty { color: #DC2626; font-style: italic; font-size: 0.85em; }
+        .field-filled { color: #059669; font-weight: 600; }
+        .field-edit input { width: 100%; padding: 7px 10px; border: 1.5px solid #C9A84C; border-radius: 6px; font-size: 0.875em; font-family: inherit; }
+
+        /* Extraction quality bar */
+        .quality-bar { background: #f0f0f0; border-radius: 8px; height: 8px; margin: 12px 0; }
+        .quality-fill { height: 100%; border-radius: 8px; background: linear-gradient(90deg, #059669, #34D399); transition: width 0.5s; }
+        .quality-label { font-size: 0.8em; color: #666; margin-bottom: 4px; }
+
+        /* Airtable guide */
+        .airtable-guide { background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 14px; padding: 28px; margin-bottom: 28px; }
+        .airtable-guide h3 { color: #1E40AF; font-size: 1em; margin-bottom: 16px; }
+        .field-columns { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+        .field-col h4 { font-size: 0.78em; font-weight: 700; color: #2563EB; text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid #BFDBFE; }
+        .field-col .field-item { font-size: 0.8em; padding: 4px 0; color: #374151; display: flex; justify-content: space-between; }
+        .field-type { color: #6B7280; font-style: italic; }
+
+        /* Recent uploads */
+        .recent-uploads { background: white; border-radius: 16px; padding: 36px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); }
+        .recent-uploads h2 { margin-bottom: 20px; font-size: 1.15em; color: #0C2340; }
+        .uploads-table { width: 100%; border-collapse: collapse; }
+        .uploads-table th, .uploads-table td { padding: 12px 16px; text-align: left; border-bottom: 1px solid #f0f0f0; font-size: 0.875em; }
+        .uploads-table th { background: #f8f9fa; font-weight: 700; font-size: 0.78em; color: #555; text-transform: uppercase; letter-spacing: 0.06em; }
+        .status-badge { padding: 3px 12px; border-radius: 20px; font-size: 0.8em; font-weight: 600; }
+        .status-success { background: #ECFDF5; color: #059669; }
+        .status-error { background: #FEF2F2; color: #DC2626; }
+
+        .notification { position: fixed; top: 20px; right: 20px; padding: 18px 24px; background: white; border-radius: 12px; box-shadow: 0 6px 24px rgba(0,0,0,0.15); display: none; z-index: 1000; max-width: 380px; border-left: 4px solid #059669; }
+        .notification.show { display: block; animation: slideIn 0.3s; }
+        .notification.error { border-left-color: #DC2626; }
+        .notification.info { border-left-color: #2563EB; }
+        @keyframes slideIn { from { transform: translateX(420px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div class="header-content">
+        <h1><i class="fas fa-shield-alt"></i> Admin Dashboard — BW Bank Rates</h1>
+        <div class="header-actions">
+            <a href="index.html" class="nav-btn"><i class="fas fa-home"></i> Public Site</a>
+            <a href="savings.html" class="nav-btn"><i class="fas fa-piggy-bank"></i> Savings</a>
+            <a href="fixed-deposits.html" class="nav-btn"><i class="fas fa-lock"></i> Fixed Deposits</a>
+            <a href="loans.html" class="nav-btn"><i class="fas fa-hand-holding-usd"></i> Loans</a>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+
+    <!-- Stats -->
+    <div class="dashboard-grid">
+        <div class="stat-card">
+            <h3>Banks in Airtable</h3>
+            <div class="number" id="totalBanks">0</div>
+        </div>
+        <div class="stat-card">
+            <h3>Last Update</h3>
+            <div class="number" id="lastUpload" style="font-size:1.2em">Never</div>
+        </div>
+        <div class="stat-card">
+            <h3>Uploads This Session</h3>
+            <div class="number" id="totalUploads">0</div>
+        </div>
+        <div class="stat-card">
+            <h3>Fields Per Bank Record</h3>
+            <div class="number">44</div>
+            <div class="sub">Including all rates + metadata</div>
+        </div>
+    </div>
+
+    <!-- Airtable Field Guide -->
+    <div class="airtable-guide">
+        <h3><i class="fas fa-database"></i> Airtable Setup — Required Fields (all Number type unless noted)</h3>
+        <div class="field-columns">
+            <div class="field-col">
+                <h4>Metadata</h4>
+                <div class="field-item">Bank Name <span class="field-type">Single line text (primary)</span></div>
+                <div class="field-item">Data Month <span class="field-type">Single line text</span></div>
+                <div class="field-item">Report Period <span class="field-type">Single line text</span></div>
+                <div class="field-item">MoPR <span class="field-type">Number</span></div>
+                <div class="field-item">Prime Lending Rate <span class="field-type">Number</span></div>
+                <div class="field-item">Last Updated <span class="field-type">Date</span></div>
+                <div class="field-item">Auto Updated <span class="field-type">Checkbox</span></div>
+                <div class="field-item">Data Source <span class="field-type">Single line text</span></div>
+                <div class="field-item">Contact Phone <span class="field-type">Single line text</span></div>
+                <div class="field-item">Website <span class="field-type">URL</span></div>
+            </div>
+            <div class="field-col">
+                <h4>Savings / Deposit Rates</h4>
+                <div class="field-item">Current Account Min <span class="field-type">Number</span></div>
+                <div class="field-item">Current Account Max <span class="field-type">Number</span></div>
+                <div class="field-item">Call Account Min <span class="field-type">Number</span></div>
+                <div class="field-item">Call Account Max <span class="field-type">Number</span></div>
+                <div class="field-item">Call Account Effective Min <span class="field-type">Number</span></div>
+                <div class="field-item">Call Account Effective Max <span class="field-type">Number</span></div>
+                <div class="field-item">Savings Min <span class="field-type">Number</span></div>
+                <div class="field-item">Savings Max <span class="field-type">Number</span></div>
+                <div class="field-item">Savings Effective Min <span class="field-type">Number</span></div>
+                <div class="field-item">Savings Effective Max <span class="field-type">Number</span></div>
+                <div class="field-item">Ordinary Savings Min <span class="field-type">Number</span></div>
+                <div class="field-item">Ordinary Savings Max <span class="field-type">Number</span></div>
+                <div class="field-item">SAYE Min <span class="field-type">Number</span></div>
+                <div class="field-item">SAYE Max <span class="field-type">Number</span></div>
+                <div class="field-item">SAYE Effective Min <span class="field-type">Number</span></div>
+                <div class="field-item">SAYE Effective Max <span class="field-type">Number</span></div>
+            </div>
+            <div class="field-col">
+                <h4>Fixed Deposit Rates</h4>
+                <div class="field-item">FD 91D Nominal Min <span class="field-type">Number</span></div>
+                <div class="field-item">FD 91D Nominal Max <span class="field-type">Number</span></div>
+                <div class="field-item">FD 91D Effective Min <span class="field-type">Number</span></div>
+                <div class="field-item">FD 91D Effective Max <span class="field-type">Number</span></div>
+                <div class="field-item">FD 3M Nominal Min <span class="field-type">Number</span></div>
+                <div class="field-item">FD 3M Nominal Max <span class="field-type">Number</span></div>
+                <div class="field-item">FD 3M Effective Min <span class="field-type">Number</span></div>
+                <div class="field-item">FD 3M Effective Max <span class="field-type">Number</span></div>
+                <div class="field-item">FD 6M Nominal Min <span class="field-type">Number</span></div>
+                <div class="field-item">FD 6M Nominal Max <span class="field-type">Number</span></div>
+                <div class="field-item">FD 6M Effective Min <span class="field-type">Number</span></div>
+                <div class="field-item">FD 6M Effective Max <span class="field-type">Number</span></div>
+                <div class="field-item">FD 12M Nominal Min <span class="field-type">Number</span></div>
+                <div class="field-item">FD 12M Nominal Max <span class="field-type">Number</span></div>
+                <div class="field-item">FD 12M Effective Min <span class="field-type">Number</span></div>
+                <div class="field-item">FD 12M Effective Max <span class="field-type">Number</span></div>
+                <div class="field-item">FD 24M Nominal Min <span class="field-type">Number</span></div>
+                <div class="field-item">FD 24M Nominal Max <span class="field-type">Number</span></div>
+                <div class="field-item">FD 24M Effective Min <span class="field-type">Number</span></div>
+                <div class="field-item">FD 24M Effective Max <span class="field-type">Number</span></div>
+                <div class="field-item">FD Over24M Nominal Min <span class="field-type">Number</span></div>
+                <div class="field-item">FD Over24M Nominal Max <span class="field-type">Number</span></div>
+                <div class="field-item">FD Over24M Effective Min <span class="field-type">Number</span></div>
+                <div class="field-item">FD Over24M Effective Max <span class="field-type">Number</span></div>
+                <div class="field-item">FD Minimum Balance <span class="field-type">Number</span></div>
+            </div>
+            <div class="field-col">
+                <h4>Lending Rates (Final %, not PLR+)</h4>
+                <div class="field-item">Mortgage Rate Min <span class="field-type">Number</span></div>
+                <div class="field-item">Mortgage Rate Max <span class="field-type">Number</span></div>
+                <div class="field-item">Overdraft Min <span class="field-type">Number</span></div>
+                <div class="field-item">Overdraft Max <span class="field-type">Number</span></div>
+                <div class="field-item">Credit Card Rate Min <span class="field-type">Number</span></div>
+                <div class="field-item">Credit Card Rate Max <span class="field-type">Number</span></div>
+                <div class="field-item">Car Loan Min <span class="field-type">Number</span></div>
+                <div class="field-item">Car Loan Max <span class="field-type">Number</span></div>
+                <div class="field-item">Lease Loan Min <span class="field-type">Number</span></div>
+                <div class="field-item">Lease Loan Max <span class="field-type">Number</span></div>
+                <div class="field-item">Personal Loan Min <span class="field-type">Number</span></div>
+                <div class="field-item">Personal Loan Max <span class="field-type">Number</span></div>
+                <div class="field-item">Other LT Min <span class="field-type">Number</span></div>
+                <div class="field-item">Other LT Max <span class="field-type">Number</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PDF Upload -->
+    <div class="upload-section">
+        <h2><i class="fas fa-file-pdf" style="color:#DC2626"></i> Upload Bank Rate PDF</h2>
+        <div class="upload-zone" id="uploadZone">
+            <div class="upload-icon"><i class="fas fa-cloud-upload-alt"></i></div>
+            <div class="upload-text">Drop file here or click to browse</div>
+            <div class="upload-subtext">
+                Supported: <strong>PDF, JPG, PNG</strong> (max 10MB) · AI reads it visually — works even on image-based PDFs
+            </div>
+            <div style="margin-top:10px;font-size:0.78em;color:#C9A84C">
+                💡 Tip: If a PDF fails, screenshot the rates table and upload as JPG
+            </div>
+            <input type="file" id="fileInput" accept=".pdf,.jpg,.jpeg,.png">
+        </div>
+        <div class="progress-bar" id="progressBar">
+            <div class="progress-fill" id="progressFill">0%</div>
+        </div>
+    </div>
+
+    <!-- Extracted Data Preview -->
+    <div class="preview-section" id="previewSection">
+        <div class="preview-header">
+            <h2><i class="fas fa-clipboard-check"></i> Extracted Data — Review Before Saving</h2>
+            <div class="action-buttons">
+                <button class="btn btn-edit" id="editBtn" onclick="enableEdit()"><i class="fas fa-edit"></i> Edit</button>
+                <button class="btn btn-reject" onclick="rejectData()"><i class="fas fa-times"></i> Reject</button>
+                <button class="btn btn-approve" onclick="approveData()"><i class="fas fa-check"></i> Approve & Save to Airtable</button>
+            </div>
+        </div>
+
+        <div class="bank-name-highlight" id="bankNameDisplay">
+            <div>
+                <h3 id="extractedBankName">—</h3>
+                <p id="extractedPeriod">—</p>
+            </div>
+            <div class="plr-display">
+                <div class="plr-value" id="plrDisplay">—</div>
+                <div class="plr-label">Prime Lending Rate</div>
+            </div>
+        </div>
+
+        <div class="quality-label" id="qualityLabel">Extraction quality: —</div>
+        <div class="quality-bar"><div class="quality-fill" id="qualityFill" style="width:0%"></div></div>
+
+        <table class="preview-table" id="previewTable">
+            <thead><tr><th>Field</th><th>Extracted Value</th><th>Status</th></tr></thead>
+            <tbody id="previewTableBody"></tbody>
+        </table>
+    </div>
+
+    <!-- Recent Uploads -->
+    <div class="recent-uploads">
+        <h2><i class="fas fa-history"></i> Upload History (This Session)</h2>
+        <table class="uploads-table">
+            <thead>
+                <tr>
+                    <th>Time</th>
+                    <th>Filename</th>
+                    <th>Bank Detected</th>
+                    <th>Status</th>
+                    <th>Fields Extracted</th>
+                </tr>
+            </thead>
+            <tbody id="uploadsTable">
+                <tr><td colspan="5" style="text-align:center;color:#999;padding:24px">No uploads yet this session</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+<div class="notification" id="notification">
+    <div id="notificationMessage"></div>
+</div>
+
+<script>
+// ============================================================
+//  CONFIG
+// ============================================================
+const CONFIG = {
+    AIRTABLE_API_KEY: 'patBhLP5wtc8YTY0A.30baf2ceb238a472b12ac9b5db2d366ad0f68a1f6c9363ec15ad96357339053a',
+    AIRTABLE_BASE_ID: 'appHKaTJz3Bx550eb',
+    AIRTABLE_TABLE_NAME: 'Bank Interest Rates',
+    PDF_PARSER_ENDPOINT: 'https://rates-parser.vercel.app/api/parse-pdf'
+};
+
+let uploadHistory = [];
+let currentExtractedData = null;
+let currentFilename = null;
+
+// ============================================================
+//  FIELD DEFINITIONS — matches parse-pdf.js and Airtable
+// ============================================================
+const FIELD_SECTIONS = [
+    {
+        label: '🔖 Identification',
+        fields: ['Bank Name', 'Data Month', 'Report Period', 'MoPR', 'Prime Lending Rate', 'Contact Phone', 'Website']
+    },
+    {
+        label: '💰 Savings & Deposit Rates',
+        fields: [
+            'Current Account Min', 'Current Account Max',
+            'Call Account Min', 'Call Account Max', 'Call Account Effective Min', 'Call Account Effective Max',
+            'Savings Min', 'Savings Max', 'Savings Effective Min', 'Savings Effective Max',
+            'Ordinary Savings Min', 'Ordinary Savings Max',
+            'SAYE Min', 'SAYE Max', 'SAYE Effective Min', 'SAYE Effective Max',
+        ]
+    },
+    {
+        label: '🔒 Fixed Deposit Rates',
+        fields: [
+            'FD 91D Nominal Min', 'FD 91D Nominal Max', 'FD 91D Effective Min', 'FD 91D Effective Max',
+            'FD 3M Nominal Min', 'FD 3M Nominal Max', 'FD 3M Effective Min', 'FD 3M Effective Max',
+            'FD 6M Nominal Min', 'FD 6M Nominal Max', 'FD 6M Effective Min', 'FD 6M Effective Max',
+            'FD 12M Nominal Min', 'FD 12M Nominal Max', 'FD 12M Effective Min', 'FD 12M Effective Max',
+            'FD 24M Nominal Min', 'FD 24M Nominal Max', 'FD 24M Effective Min', 'FD 24M Effective Max',
+            'FD Over24M Nominal Min', 'FD Over24M Nominal Max', 'FD Over24M Effective Min', 'FD Over24M Effective Max',
+            'FD Minimum Balance',
+        ]
+    },
+    {
+        label: '🏦 Lending Rates (Final %, PLR already included)',
+        fields: [
+            'Mortgage Rate Min', 'Mortgage Rate Max',
+            'Overdraft Min', 'Overdraft Max',
+            'Credit Card Rate Min', 'Credit Card Rate Max',
+            'Car Loan Min', 'Car Loan Max',
+            'Lease Loan Min', 'Lease Loan Max',
+            'Personal Loan Min', 'Personal Loan Max',
+            'Other LT Min', 'Other LT Max',
+        ]
+    }
+];
+
+// All numeric fields in Airtable (everything except text/meta)
+const NUMERIC_FIELDS = new Set([
+    'MoPR', 'Prime Lending Rate',
+    'Current Account Min', 'Current Account Max',
+    'Call Account Min', 'Call Account Max', 'Call Account Effective Min', 'Call Account Effective Max',
+    'Savings Min', 'Savings Max', 'Savings Effective Min', 'Savings Effective Max',
+    'Ordinary Savings Min', 'Ordinary Savings Max',
+    'SAYE Min', 'SAYE Max', 'SAYE Effective Min', 'SAYE Effective Max',
+    'FD 91D Nominal Min', 'FD 91D Nominal Max', 'FD 91D Effective Min', 'FD 91D Effective Max',
+    'FD 3M Nominal Min', 'FD 3M Nominal Max', 'FD 3M Effective Min', 'FD 3M Effective Max',
+    'FD 6M Nominal Min', 'FD 6M Nominal Max', 'FD 6M Effective Min', 'FD 6M Effective Max',
+    'FD 12M Nominal Min', 'FD 12M Nominal Max', 'FD 12M Effective Min', 'FD 12M Effective Max',
+    'FD 24M Nominal Min', 'FD 24M Nominal Max', 'FD 24M Effective Min', 'FD 24M Effective Max',
+    'FD Over24M Nominal Min', 'FD Over24M Nominal Max', 'FD Over24M Effective Min', 'FD Over24M Effective Max',
+    'FD Minimum Balance',
+    'Mortgage Rate Min', 'Mortgage Rate Max',
+    'Overdraft Min', 'Overdraft Max',
+    'Credit Card Rate Min', 'Credit Card Rate Max',
+    'Car Loan Min', 'Car Loan Max',
+    'Lease Loan Min', 'Lease Loan Max',
+    'Personal Loan Min', 'Personal Loan Max',
+    'Other LT Min', 'Other LT Max',
+]);
+
+// ============================================================
+//  UPLOAD ZONE
+// ============================================================
+const uploadZone = document.getElementById('uploadZone');
+const fileInput = document.getElementById('fileInput');
+
+uploadZone.addEventListener('click', () => fileInput.click());
+uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('dragover'); });
+uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('dragover'));
+uploadZone.addEventListener('drop', e => {
+    e.preventDefault(); uploadZone.classList.remove('dragover');
+    if (e.dataTransfer.files.length > 0) handleFileUpload(e.dataTransfer.files[0]);
+});
+fileInput.addEventListener('change', e => {
+    if (e.target.files.length > 0) handleFileUpload(e.target.files[0]);
+});
+
+async function handleFileUpload(file) {
+    const validExts = ['.pdf', '.jpg', '.jpeg', '.png'];
+    const ext = '.' + file.name.split('.').pop().toLowerCase();
+    if (!validExts.includes(ext)) { showNotification('Please upload a PDF, JPG, or PNG file', 'error'); return; }
+    if (file.size > 10 * 1024 * 1024) { showNotification('File too large (max 10MB)', 'error'); return; }
+
+    currentFilename = file.name;
+    const progressBar = document.getElementById('progressBar');
+    const progressFill = document.getElementById('progressFill');
+    progressBar.style.display = 'block';
+    progressFill.style.width = '20%';
+    progressFill.textContent = '20% — Reading file...';
+
+    const mimeType = ext === '.pdf' ? 'application/pdf' : ext === '.png' ? 'image/png' : 'image/jpeg';
+
+    const reader = new FileReader();
+    reader.onload = async e => {
+        const base64 = e.target.result.split(',')[1];
+        try {
+            progressFill.style.width = '55%';
+            progressFill.textContent = '55% — AI reading document...';
+
+            const response = await fetch(CONFIG.PDF_PARSER_ENDPOINT, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ filename: file.name, content: base64, mimeType })
+            });
+
+            const result = await response.json();
+            progressFill.style.width = '100%';
+            progressFill.textContent = '100%';
+
+            if (response.ok && result.success) {
+                currentExtractedData = result.data;
+                showPreview(result.data);
+                showNotification('✅ ' + result.message, 'success');
+                addToUploadHistory(file.name, result.data['Bank Name'], 'success', result.data);
+            } else {
+                throw new Error(result.error || result.details || 'Upload failed');
+            }
+        } catch (error) {
+            showNotification('❌ ' + error.message, 'error');
+            addToUploadHistory(file.name, 'Unknown', 'error', null);
+        } finally {
+            setTimeout(() => {
+                progressBar.style.display = 'none';
+                progressFill.style.width = '0%';
+            }, 2500);
+        }
+    };
+    reader.readAsDataURL(file);
+}
+
+// ============================================================
+//  PREVIEW
+// ============================================================
+function showPreview(data) {
+    const tbody = document.getElementById('previewTableBody');
+    document.getElementById('extractedBankName').textContent = data['Bank Name'] || 'Unknown Bank';
+    document.getElementById('extractedPeriod').textContent = data['Data Month'] || data['Report Period'] || 'Period not detected';
+    document.getElementById('plrDisplay').textContent = data['Prime Lending Rate'] ? data['Prime Lending Rate'] + '%' : '—';
+    document.getElementById('editBtn').textContent = '✏️ Edit';
+    document.getElementById('editBtn').onclick = enableEdit;
+
+    let html = '';
+    let filledCount = 0;
+    let totalCount = 0;
+
+    FIELD_SECTIONS.forEach(section => {
+        html += `<tr class="section-row"><td colspan="3">${section.label}</td></tr>`;
+        section.fields.forEach(field => {
+            const value = data[field];
+            const isEmpty = value === null || value === undefined || value === '';
+            if (!isEmpty) filledCount++;
+            totalCount++;
+            html += `<tr>
+                <th>${field}</th>
+                <td data-field="${field}">${isEmpty ? '<span class="field-empty">Not extracted</span>' : `<span class="field-filled">${value}</span>`}</td>
+                <td>${isEmpty ? '<i class="fas fa-times-circle" style="color:#DC2626"></i>' : '<i class="fas fa-check-circle" style="color:#059669"></i>'}</td>
+            </tr>`;
+        });
+    });
+
+    tbody.innerHTML = html;
+    
+    const pct = Math.round((filledCount / totalCount) * 100);
+    document.getElementById('qualityLabel').textContent = `Extraction quality: ${filledCount}/${totalCount} fields extracted (${pct}%)`;
+    document.getElementById('qualityFill').style.width = pct + '%';
+    
+    document.getElementById('previewSection').classList.add('show');
+    document.getElementById('previewSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function enableEdit() {
+    const rows = document.querySelectorAll('#previewTableBody tr:not(.section-row)');
+    rows.forEach(row => {
+        const td = row.querySelector('td[data-field]');
+        if (!td) return;
+        const field = td.dataset.field;
+        const currentValue = currentExtractedData[field] ?? '';
+        const isNumeric = NUMERIC_FIELDS.has(field);
+        td.innerHTML = `<input type="${isNumeric ? 'number' : 'text'}" 
+            step="${isNumeric ? '0.01' : ''}"
+            value="${currentValue}" 
+            data-field="${field}" 
+            placeholder="${isEmpty(currentValue) ? 'Enter value' : ''}"
+            class="field-edit">`;
+    });
+    document.getElementById('editBtn').textContent = '💾 Save Edits';
+    document.getElementById('editBtn').onclick = saveEdits;
+}
+
+function saveEdits() {
+    document.querySelectorAll('input[data-field]').forEach(input => {
+        const field = input.dataset.field;
+        let value = input.value.trim();
+        if (value === '') { currentExtractedData[field] = null; return; }
+        currentExtractedData[field] = NUMERIC_FIELDS.has(field) ? parseFloat(value) : value;
+    });
+    showPreview(currentExtractedData);
+    showNotification('✅ Edits saved! Click Approve & Save to update Airtable.', 'info');
+}
+
+function rejectData() {
+    if (confirm('Reject this data? You can upload again or try manual entry.')) {
+        document.getElementById('previewSection').classList.remove('show');
+        currentExtractedData = null;
+        showNotification('Data rejected.', 'error');
+    }
+}
+
+// ============================================================
+//  APPROVE & SAVE TO AIRTABLE
+// ============================================================
+async function approveData() {
+    if (!currentExtractedData) { showNotification('No data to save.', 'error'); return; }
+    if (!currentExtractedData['Bank Name']) { showNotification('Bank Name is required. Click Edit and fill it in.', 'error'); return; }
+
+    showNotification('💾 Saving to Airtable...', 'info');
+
+    try {
+        const fields = {};
+
+        for (const [key, value] of Object.entries(currentExtractedData)) {
+            if (value === null || value === undefined || value === '') continue;
+
+            if (NUMERIC_FIELDS.has(key)) {
+                const n = parseFloat(String(value).replace(/[^0-9.]/g, ''));
+                if (!isNaN(n)) fields[key] = n;
+            } else if (typeof value === 'boolean') {
+                fields[key] = value;
+            } else {
+                fields[key] = String(value);
+            }
+        }
+
+        // Metadata
+        fields['Last Updated'] = new Date().toISOString().split('T')[0];
+        fields['Auto Updated'] = true;
+        fields['Data Source'] = 'PDF Upload';
+
+        const baseUrl = `https://api.airtable.com/v0/${CONFIG.AIRTABLE_BASE_ID}/${encodeURIComponent(CONFIG.AIRTABLE_TABLE_NAME)}`;
+        const headers = {
+            'Authorization': `Bearer ${CONFIG.AIRTABLE_API_KEY}`,
+            'Content-Type': 'application/json'
+        };
+
+        // Check for existing record
+        const searchRes = await fetch(`${baseUrl}?filterByFormula={Bank Name}="${encodeURIComponent(fields['Bank Name'])}"`, { headers });
+        const searchData = await searchRes.json();
+
+        let saveRes;
+        if (searchData.records?.length > 0) {
+            const recordId = searchData.records[0].id;
+            saveRes = await fetch(`${baseUrl}/${recordId}`, {
+                method: 'PATCH', headers, body: JSON.stringify({ fields })
+            });
+        } else {
+            saveRes = await fetch(baseUrl, {
+                method: 'POST', headers, body: JSON.stringify({ fields })
+            });
+        }
+
+        if (!saveRes.ok) {
+            const err = await saveRes.json();
+            throw new Error(err.error?.message || 'Airtable save failed');
+        }
+
+        showNotification(`✅ Saved: ${fields['Bank Name']} → Airtable`, 'success');
+        document.getElementById('previewSection').classList.remove('show');
+        currentExtractedData = null;
+        await updateStats();
+
+    } catch (error) {
+        console.error('Airtable error:', error);
+        showNotification('❌ Error: ' + error.message, 'error');
+    }
+}
+
+// ============================================================
+//  UPLOAD HISTORY
+// ============================================================
+function addToUploadHistory(filename, bankName, status, data) {
+    const filled = data ? Object.values(data).filter(v => v !== null && v !== undefined && v !== '').length : 0;
+    uploadHistory.unshift({ date: new Date().toLocaleTimeString(), filename, bankName: bankName||'Unknown', status, filled });
+    renderUploadHistory();
+    document.getElementById('totalUploads').textContent = uploadHistory.length;
+}
+
+function renderUploadHistory() {
+    const tbody = document.getElementById('uploadsTable');
+    if (uploadHistory.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#999;padding:24px">No uploads yet</td></tr>';
+        return;
+    }
+    tbody.innerHTML = uploadHistory.slice(0, 10).map(u => `<tr>
+        <td>${u.date}</td>
+        <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${u.filename}</td>
+        <td><strong>${u.bankName}</strong></td>
+        <td><span class="status-badge ${u.status === 'success' ? 'status-success' : 'status-error'}">${u.status}</span></td>
+        <td>${u.filled} / 44 fields</td>
+    </tr>`).join('');
+}
+
+// ============================================================
+//  STATS
+// ============================================================
+async function updateStats() {
+    try {
+        const url = `https://api.airtable.com/v0/${CONFIG.AIRTABLE_BASE_ID}/${CONFIG.AIRTABLE_TABLE_NAME}`;
+        const res = await fetch(url, { headers: { 'Authorization': `Bearer ${CONFIG.AIRTABLE_API_KEY}` } });
+        const data = await res.json();
+        document.getElementById('totalBanks').textContent = data.records?.length ?? 0;
+        const lastDate = data.records?.[0]?.fields?.['Last Updated'];
+        if (lastDate) document.getElementById('lastUpload').textContent = lastDate;
+    } catch { /* ignore */ }
+}
+
+// ============================================================
+//  NOTIFICATION
+// ============================================================
+function showNotification(message, type = 'success') {
+    const el = document.getElementById('notification');
+    document.getElementById('notificationMessage').innerHTML = message;
+    el.className = `notification ${type} show`;
+    setTimeout(() => el.classList.remove('show'), 5000);
+}
+
+function isEmpty(v) { return v === null || v === undefined || v === ''; }
+
+// Init
+updateStats();
+</script>
+</body>
+</html>

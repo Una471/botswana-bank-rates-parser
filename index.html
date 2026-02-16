@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BW Rate Watch — Botswana Bank Interest Rates Comparison</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy: #0C2340;
+  --navy-mid: #1A3A5C;
+  --gold: #C9A84C;
+  --gold-light: #E8C96A;
+  --green: #059669;
+  --red: #DC2626;
+  --orange: #D97706;
+  --blue: #2563EB;
+  --surface: #F8F9FC;
+  --border: #E5E8EF;
+  --text: #1A2535;
+  --muted: #6B7280;
+  --white: #FFFFFF;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;background:var(--surface);color:var(--text);line-height:1.6}
+
+/* NAV */
+nav{background:var(--navy);position:sticky;top:0;z-index:100;box-shadow:0 2px 20px rgba(0,0,0,0.3)}
+.nav-inner{max-width:1200px;margin:0 auto;padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:64px}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+.logo-icon{width:36px;height:36px;background:var(--gold);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;color:var(--navy);font-size:1.1em}
+.logo-text{font-weight:700;color:white;font-size:1.1em;letter-spacing:-0.01em}
+.logo-text span{color:var(--gold)}
+.nav-links{display:flex;gap:4px}
+.nav-links a{padding:8px 14px;border-radius:8px;text-decoration:none;color:rgba(255,255,255,0.7);font-size:0.875em;font-weight:500;transition:all 0.2s}
+.nav-links a:hover,.nav-links a.active{color:white;background:rgba(255,255,255,0.1)}
+.nav-links a.active{color:var(--gold-light)}
+.nav-admin{padding:7px 16px;background:rgba(201,168,76,0.15);border:1px solid rgba(201,168,76,0.4);border-radius:8px;color:var(--gold-light);font-size:0.8em;font-weight:600;text-decoration:none;transition:all 0.2s}
+.nav-admin:hover{background:rgba(201,168,76,0.25)}
+
+/* HERO */
+.hero{background:linear-gradient(135deg,var(--navy) 0%,var(--navy-mid) 60%,#243d5e 100%);padding:80px 24px 60px;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:-40%;right:-10%;width:600px;height:600px;background:radial-gradient(circle,rgba(201,168,76,0.08) 0%,transparent 70%);pointer-events:none}
+.hero-inner{max-width:1200px;margin:0 auto}
+.hero-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(201,168,76,0.15);border:1px solid rgba(201,168,76,0.3);border-radius:100px;padding:5px 14px;font-size:0.78em;font-weight:600;color:var(--gold-light);margin-bottom:20px;letter-spacing:0.04em}
+.hero-badge::before{content:'';width:6px;height:6px;background:var(--gold);border-radius:50%;display:inline-block}
+.hero h1{font-family:'DM Serif Display',serif;font-size:clamp(2.2em,5vw,3.4em);color:white;line-height:1.15;margin-bottom:16px;max-width:700px}
+.hero h1 em{font-style:italic;color:var(--gold-light)}
+.hero p{color:rgba(255,255,255,0.65);font-size:1.1em;max-width:540px;margin-bottom:36px;font-weight:300}
+.hero-actions{display:flex;gap:12px;flex-wrap:wrap}
+.btn-primary{display:inline-flex;align-items:center;gap:8px;padding:13px 28px;background:var(--gold);color:var(--navy);border-radius:10px;font-weight:700;text-decoration:none;font-size:0.95em;transition:all 0.2s;box-shadow:0 4px 16px rgba(201,168,76,0.3)}
+.btn-primary:hover{background:var(--gold-light);transform:translateY(-1px);box-shadow:0 6px 20px rgba(201,168,76,0.4)}
+.btn-outline{display:inline-flex;align-items:center;gap:8px;padding:12px 24px;background:transparent;border:1.5px solid rgba(255,255,255,0.25);color:white;border-radius:10px;font-weight:500;text-decoration:none;font-size:0.95em;transition:all 0.2s}
+.btn-outline:hover{background:rgba(255,255,255,0.08);border-color:rgba(255,255,255,0.45)}
+.hero-stats{display:flex;gap:40px;margin-top:48px;padding-top:40px;border-top:1px solid rgba(255,255,255,0.1)}
+.stat{text-align:left}
+.stat-num{font-family:'DM Serif Display',serif;font-size:2em;color:var(--gold-light);line-height:1}
+.stat-label{font-size:0.78em;color:rgba(255,255,255,0.5);margin-top:4px;text-transform:uppercase;letter-spacing:0.06em}
+
+/* MOPR BAND */
+.mopr-band{background:var(--navy);padding:16px 24px}
+.mopr-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.mopr-label{font-size:0.78em;color:rgba(255,255,255,0.5);letter-spacing:0.06em;text-transform:uppercase}
+.mopr-value{font-size:1em;font-weight:700;color:var(--gold-light)}
+.mopr-divider{color:rgba(255,255,255,0.15);font-size:1.2em}
+.mopr-desc{font-size:0.78em;color:rgba(255,255,255,0.4)}
+
+/* CARDS + SECTIONS */
+.section{max-width:1200px;margin:0 auto;padding:60px 24px}
+.section-header{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:28px;flex-wrap:wrap;gap:12px}
+.section-title{font-family:'DM Serif Display',serif;font-size:1.8em;color:var(--navy);line-height:1.2}
+.section-sub{font-size:0.875em;color:var(--muted);margin-top:4px}
+.see-all{font-size:0.875em;font-weight:600;color:var(--blue);text-decoration:none;display:flex;align-items:center;gap:4px;white-space:nowrap}
+.see-all:hover{text-decoration:underline}
+
+/* PRODUCT CARDS */
+.product-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px}
+.product-card{background:white;border-radius:16px;padding:28px;border:1px solid var(--border);transition:all 0.25s;cursor:pointer;text-decoration:none;display:block;position:relative;overflow:hidden}
+.product-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--gold)}
+.product-card:hover{transform:translateY(-3px);box-shadow:0 12px 32px rgba(12,35,64,0.12);border-color:var(--gold)}
+.product-card.savings::before{background:var(--green)}
+.product-card.savings:hover{border-color:var(--green)}
+.product-card.fd::before{background:var(--blue)}
+.product-card.fd:hover{border-color:var(--blue)}
+.product-card.loans::before{background:var(--orange)}
+.product-card.loans:hover{border-color:var(--orange)}
+.card-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.5em;margin-bottom:16px}
+.card-icon.savings{background:#ECFDF5}
+.card-icon.fd{background:#EFF6FF}
+.card-icon.loans{background:#FFFBEB}
+.card-title{font-weight:700;font-size:1.1em;color:var(--text);margin-bottom:6px}
+.card-desc{font-size:0.83em;color:var(--muted);line-height:1.5;margin-bottom:16px}
+.card-rate-row{display:flex;align-items:baseline;gap:6px}
+.rate-up-to{font-size:0.72em;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em}
+.rate-value{font-family:'DM Serif Display',serif;font-size:2em;color:var(--navy)}
+.rate-unit{font-size:0.85em;color:var(--muted)}
+.card-footer{margin-top:16px;padding-top:12px;border-top:1px solid var(--border);font-size:0.78em;color:var(--muted);display:flex;align-items:center;gap:4px}
+.arrow-icon{color:var(--gold);font-weight:700;margin-left:auto;font-size:1.2em;transition:transform 0.2s}
+.product-card:hover .arrow-icon{transform:translateX(3px)}
+
+/* PLR TABLE */
+.plr-table-wrap{background:white;border-radius:16px;border:1px solid var(--border);overflow:hidden}
+.data-table{width:100%;border-collapse:collapse}
+.data-table thead th{background:var(--navy);color:white;padding:14px 18px;text-align:left;font-size:0.78em;font-weight:600;letter-spacing:0.05em;text-transform:uppercase}
+.data-table tbody tr{border-bottom:1px solid var(--border);transition:background 0.15s}
+.data-table tbody tr:last-child{border-bottom:none}
+.data-table tbody tr:hover{background:#FAFBFF}
+.data-table td{padding:14px 18px;font-size:0.875em;vertical-align:middle}
+.bank-cell{display:flex;align-items:center;gap:12px}
+.bank-avatar{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:0.8em;color:white;flex-shrink:0}
+.bank-name-link{font-weight:600;color:var(--text);text-decoration:none}
+.bank-name-link:hover{color:var(--blue);text-decoration:underline}
+.bank-website{font-size:0.75em;color:var(--muted);text-decoration:none;display:flex;align-items:center;gap:3px}
+.bank-website:hover{color:var(--blue)}
+.rate-pill{display:inline-block;padding:3px 10px;border-radius:100px;font-size:0.8em;font-weight:700}
+.rate-pill.high{background:#ECFDF5;color:var(--green)}
+.rate-pill.mid{background:#EFF6FF;color:var(--blue)}
+.rate-pill.low{background:#F9FAFB;color:var(--muted)}
+.updated-badge{font-size:0.72em;color:var(--muted);white-space:nowrap}
+.nil-badge{font-size:0.78em;color:var(--muted);font-style:italic}
+
+/* EMPTY STATE */
+.empty-state{text-align:center;padding:60px 24px;color:var(--muted)}
+.empty-icon{font-size:3em;margin-bottom:12px;opacity:0.4}
+.empty-title{font-size:1.1em;font-weight:600;color:var(--text);margin-bottom:8px}
+.empty-sub{font-size:0.875em;line-height:1.6;max-width:400px;margin:0 auto 20px}
+.empty-link{display:inline-flex;align-items:center;gap:6px;padding:9px 20px;background:var(--navy);color:white;border-radius:8px;text-decoration:none;font-size:0.85em;font-weight:600}
+
+/* LOADING */
+.loading-row td{text-align:center;padding:40px;color:var(--muted);font-size:0.875em}
+.spinner{display:inline-block;width:18px;height:18px;border:2px solid var(--border);border-top-color:var(--navy);border-radius:50%;animation:spin 0.8s linear infinite;vertical-align:middle;margin-right:8px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* DISCLAIMER */
+.disclaimer{background:white;border-top:1px solid var(--border);padding:40px 24px;text-align:center}
+.disclaimer p{font-size:0.78em;color:var(--muted);max-width:700px;margin:0 auto;line-height:1.7}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+  .hero-stats{gap:24px}
+  .nav-links{display:none}
+  .hero h1{font-size:2em}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <a href="index.html" class="logo">
+      <div class="logo-icon">BW</div>
+      <div class="logo-text">Rate<span>Watch</span></div>
+    </a>
+    <div class="nav-links">
+      <a href="index.html" class="active">Overview</a>
+      <a href="savings.html">Savings</a>
+      <a href="fixed-deposits.html">Fixed Deposits</a>
+      <a href="loans.html">Loans</a>
+    </div>
+    <a href="admin.html" class="nav-admin">⚙ Admin</a>
+  </div>
+</nav>
+
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-badge">🇧🇼 Botswana Bank Rates — Updated Monthly</div>
+    <h1>Compare <em>every bank's</em> interest rates in one place</h1>
+    <p>Stop visiting multiple bank branches or deciphering confusing PDFs. We track savings, fixed deposits and loan rates across all Botswana banks.</p>
+    <div class="hero-actions">
+      <a href="fixed-deposits.html" class="btn-primary">📊 Compare Fixed Deposits</a>
+      <a href="loans.html" class="btn-outline">💰 Compare Loan Rates</a>
+    </div>
+    <div class="hero-stats">
+      <div class="stat"><div class="stat-num" id="bankCount">—</div><div class="stat-label">Banks Tracked</div></div>
+      <div class="stat"><div class="stat-num" id="bestFdRate">—</div><div class="stat-label">Best 12M FD Rate</div></div>
+      <div class="stat"><div class="stat-num">3.50%</div><div class="stat-label">MoPR (Bank of Botswana)</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="mopr-band">
+  <div class="mopr-inner">
+    <div class="mopr-label">Monetary Policy Rate (MoPR)</div>
+    <div class="mopr-value">3.50%</div>
+    <div class="mopr-divider">|</div>
+    <div class="mopr-desc">Set by Bank of Botswana · Influences all bank lending rates</div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-header">
+    <div>
+      <div class="section-title">Browse by Product Type</div>
+      <div class="section-sub">Choose what you want to compare</div>
+    </div>
+  </div>
+  <div class="product-grid">
+    <a href="savings.html" class="product-card savings">
+      <div class="card-icon savings">🏦</div>
+      <div class="card-title">Savings & Call Accounts</div>
+      <div class="card-desc">Compare interest rates on everyday savings, call accounts and SAYE (Save As You Earn) products across all banks.</div>
+      <div class="card-rate-row">
+        <span class="rate-up-to">Up to</span>
+        <span class="rate-value" id="bestSavings">—</span>
+        <span class="rate-unit">%</span>
+      </div>
+      <div class="card-footer">View all savings rates <span class="arrow-icon">→</span></div>
+    </a>
+    <a href="fixed-deposits.html" class="product-card fd">
+      <div class="card-icon fd">🔒</div>
+      <div class="card-title">Fixed Deposits</div>
+      <div class="card-desc">Lock in higher rates for 91 days to 24+ months. Compare nominal and effective rates with our FD calculator.</div>
+      <div class="card-rate-row">
+        <span class="rate-up-to">Up to</span>
+        <span class="rate-value" id="bestFD">—</span>
+        <span class="rate-unit">%</span>
+      </div>
+      <div class="card-footer">View all FD rates <span class="arrow-icon">→</span></div>
+    </a>
+    <a href="loans.html" class="product-card loans">
+      <div class="card-icon loans">💳</div>
+      <div class="card-title">Loans & Credit</div>
+      <div class="card-desc">See final lending rates for mortgages, personal loans, car finance, overdrafts and credit cards — no PLR formulas.</div>
+      <div class="card-rate-row">
+        <span class="rate-up-to">From</span>
+        <span class="rate-value" id="lowestMortgage">—</span>
+        <span class="rate-unit">%</span>
+      </div>
+      <div class="card-footer">View all loan rates <span class="arrow-icon">→</span></div>
+    </a>
+  </div>
+</div>
+
+<div class="section" style="padding-top:0">
+  <div class="section-header">
+    <div>
+      <div class="section-title">Prime Lending Rates (PLR)</div>
+      <div class="section-sub">Each bank sets its own base rate above MoPR — the starting point for all their lending</div>
+    </div>
+    <a href="loans.html" class="see-all">All loan rates →</a>
+  </div>
+  <div class="plr-table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Bank</th>
+          <th>Prime Lending Rate</th>
+          <th>Best Savings Rate</th>
+          <th>Best 12M FD Rate</th>
+          <th>Data Month</th>
+          <th>Visit</th>
+        </tr>
+      </thead>
+      <tbody id="plrTableBody">
+        <tr class="loading-row"><td colspan="6"><span class="spinner"></span>Loading bank data...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="disclaimer">
+  <p>BW Rate Watch aggregates publicly published interest rate schedules from Botswana commercial banks. Rates are indicative only and may change without notice. Always confirm current rates directly with your bank before making financial decisions. This site is not affiliated with any bank or the Bank of Botswana.</p>
+</div>
+
+<script>
+const AIRTABLE_API_KEY = 'patBhLP5wtc8YTY0A.30baf2ceb238a472b12ac9b5db2d366ad0f68a1f6c9363ec15ad96357339053a';
+const AIRTABLE_BASE_ID = 'appHKaTJz3Bx550eb';
+const AIRTABLE_TABLE = 'Bank Interest Rates';
+
+const BANK_COLORS = [
+  '#0C2340','#1A3A5C','#C9A84C','#059669','#2563EB','#D97706',
+  '#7C3AED','#DC2626','#0891B2','#16A34A','#EA580C'
+];
+
+function bankInitials(name) {
+  return (name || '??').split(' ').filter(w => /^[A-Z]/.test(w)).map(w => w[0]).join('').substring(0,3) || name.substring(0,2).toUpperCase();
+}
+function bankColor(name) {
+  let h = 0; for(const c of name) h = (h * 31 + c.charCodeAt(0)) & 0xFFFF;
+  return BANK_COLORS[h % BANK_COLORS.length];
+}
+function fmtRate(v) { return (v !== null && v !== undefined && v !== '') ? parseFloat(v).toFixed(2) + '%' : '—'; }
+function maxRate(...vals) {
+  const nums = vals.map(v => parseFloat(v)).filter(v => !isNaN(v));
+  return nums.length ? Math.max(...nums) : null;
+}
+function minRate(...vals) {
+  const nums = vals.map(v => parseFloat(v)).filter(v => !isNaN(v));
+  return nums.length ? Math.min(...nums) : null;
+}
+
+async function loadData() {
+  try {
+    const url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${encodeURIComponent(AIRTABLE_TABLE)}?sort[0][field]=Bank Name&sort[0][direction]=asc`;
+    const res = await fetch(url, { headers: { 'Authorization': `Bearer ${AIRTABLE_API_KEY}` } });
+    const json = await res.json();
+    const records = (json.records || []).map(r => r.fields).filter(f => f['Bank Name']);
+    renderAll(records);
+  } catch (e) {
+    renderAll([]);
+    console.error('Airtable error:', e);
+  }
+}
+
+function renderAll(banks) {
+  document.getElementById('bankCount').textContent = banks.length || '—';
+
+  // Best stats
+  const allFD12 = banks.map(b => parseFloat(b['FD 12M Nominal Max'])).filter(v => !isNaN(v));
+  const allSav = banks.map(b => parseFloat(b['Savings Max'])).filter(v => !isNaN(v));
+  const allMort = banks.map(b => parseFloat(b['Mortgage Rate Min'])).filter(v => !isNaN(v));
+
+  if (allFD12.length) {
+    document.getElementById('bestFdRate').textContent = Math.max(...allFD12).toFixed(2) + '%';
+    document.getElementById('bestFD').textContent = Math.max(...allFD12).toFixed(2);
+  }
+  if (allSav.length) document.getElementById('bestSavings').textContent = Math.max(...allSav).toFixed(2);
+  if (allMort.length) document.getElementById('lowestMortgage').textContent = Math.min(...allMort).toFixed(2);
+
+  renderPLRTable(banks);
+}
+
+function renderPLRTable(banks) {
+  const tbody = document.getElementById('plrTableBody');
+  if (!banks.length) {
+    tbody.innerHTML = `<tr><td colspan="6">
+      <div class="empty-state">
+        <div class="empty-icon">📭</div>
+        <div class="empty-title">No bank data yet</div>
+        <div class="empty-sub">Upload bank rate PDFs on the admin page to populate this site with live data.</div>
+        <a href="admin.html" class="empty-link">⚙ Go to Admin Page</a>
+      </div>
+    </td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = banks.map(b => {
+    const name = b['Bank Name'];
+    const color = bankColor(name);
+    const initials = bankInitials(name);
+    const plr = b['Prime Lending Rate'];
+    const website = b['Website'] || '#';
+    const bestSav = maxRate(b['Savings Max'], b['Call Account Max']);
+    const bestFD12 = b['FD 12M Nominal Max'];
+    const dataMonth = b['Data Month'] || b['Last Updated'] || '—';
+    const plrNum = parseFloat(plr);
+
+    return `<tr>
+      <td>
+        <div class="bank-cell">
+          <div class="bank-avatar" style="background:${color}">${initials}</div>
+          <div>
+            <a href="${website}" target="_blank" rel="noopener" class="bank-name-link">${name}</a>
+            <div><a href="${website}" target="_blank" rel="noopener" class="bank-website">🔗 Official website</a></div>
+          </div>
+        </div>
+      </td>
+      <td><strong>${plr ? parseFloat(plr).toFixed(2) + '%' : '—'}</strong></td>
+      <td>${bestSav !== null ? `<span class="rate-pill high">${bestSav.toFixed(2)}%</span>` : '<span class="nil-badge">—</span>'}</td>
+      <td>${bestFD12 ? `<span class="rate-pill mid">${parseFloat(bestFD12).toFixed(2)}%</span>` : '<span class="nil-badge">—</span>'}</td>
+      <td><span class="updated-badge">${dataMonth}</span></td>
+      <td><a href="${website}" target="_blank" rel="noopener" class="bank-website" style="font-size:0.82em">Visit →</a></td>
+    </tr>`;
+  }).join('');
+}
+
+loadData();
+</script>
+</body>
+</html>
