@@ -1,6 +1,6 @@
 {
   "name": "bw-rate-watch-parser",
-  "version": "4.0.0",
+  "version": "5.0.0",
   "description": "Gemini Vision + pdf-parse fallback for Botswana bank rates",
   "main": "api/parse-pdf.js",
   "dependencies": {
