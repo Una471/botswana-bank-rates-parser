@@ -1,109 +1,64 @@
 // ============================================================
-// BW RATE WATCH — PDF PARSER v7 (CORS FIXED)
+// BW RATE WATCH — PDF PARSER (PURE GEMINI VISION)
+// 100% FREE — Uses Gemini 1.5 Flash with vision
+// Sends raw file bytes via inline_data (no pdf-parse)
 // ============================================================
 
-// ============================================================
-// BOTSWANA BANK KNOWLEDGE BASE
-// ============================================================
 const BANK_KNOWLEDGE = {
   ABSA: {
     aliases: ['absa'],
     fullName: 'ABSA Bank Botswana',
     website: 'https://www.absa.co.bw',
-    pdfStructure: `
-ABSA BANK:
-- PLR: 6.76%
-- Current: 0.00%-1.00%
-- Call: 0.00%-0.55% nominal, 0.00%-0.55% effective
-- Savings: 0.00%-3.60% nominal, 0.00%-3.66% effective
-- 3 Months: 1.46% nominal, 1.47% effective
-- 6 Months: 1.73%-1.90% nominal, 1.74%-1.91% effective
-- 12 Months: 2.57%-3.07% nominal, 2.57%-3.07% effective
-- 24 Months: 2.92%-3.62% nominal, 2.92%-3.62% effective
-- Over 24M: 3.02%-3.82% nominal, 3.02%-3.82% effective
-- Mortgage: 17.26% to 20.76%
-- Overdraft: 16.76% to 26.76%
-- Credit Card: 24% to 36%
-- Personal Loan: 21.26% to 30.76%`
+    hints: 'PLR 6.76%. FD table has BLANK row labels (they float above). Map by position: Row1=3M (1.46%), Row2=6M (1.73-1.90%), Row3=12M (2.57-3.07%), Row4=24M (2.92-3.62%), Row5=Over24M (3.02-3.82%). Mortgage 17.26-20.76%, Personal 21.26-30.76%, Credit Card 24-36%.'
   },
-
   ACCESS: {
     aliases: ['access'],
     fullName: 'Access Bank Botswana',
     website: 'https://botswana.accessbankplc.com',
-    pdfStructure: `
-ACCESS BANK:
-- PLR: 7.16%
-- Current: Nil
-- Call: 0.10%-0.60% nominal, 0.10%-0.60% effective
-- Savings: 0.15%-5.50% nominal, 0.15%-5.50% effective
-- 91Day: 1.00%-3.50% nominal, 1.00%-3.50% effective
-- 6 Months: 1.76%-4.01% nominal, 1.75%-4.00% effective
-- 12 Months: 2.05%-6.25% nominal, 2.05%-6.25% effective
-- 24 Months: 2.25%-6.25% nominal, 2.25%-6.25% effective
-- Over 24M: 2.55%-6.25% nominal, 2.55%-6.25% effective
-- Mortgage: 7.66% to 17.16%
-- Overdraft: 8.16% to 27.16%
-- Credit Card: Up to 32%
-- Personal Loan: 8.16% to 32.16%`
+    hints: 'PLR 7.16% (called ABB Prime). TWO tables side-by-side: use LEFT (BWP) only, ignore right (foreign currency). 91Day FD exists. Mortgage 7.66-17.16%, Personal 8.16-32.16%, Credit Card 0-32%.'
   },
-
   BSB: {
     aliases: ['bsb', 'botswana savings'],
     fullName: 'Botswana Savings Bank (BSB)',
     website: 'https://www.bsb.bw',
-    pdfStructure: `
-BSB:
-- PLR: 8.01%
-- Current: NIL
-- Savings: 1.25%-2.75% nominal, 1.26%-2.78% effective
-- SAYE: 1.25%-2.00% nominal, 1.26%-2.02% effective
-- 3 months: 0.80%-1.00% nominal, 0.80%-1.00% effective
-- 6 months: 1.40%-1.75% nominal, 1.41%-1.76% effective
-- 12 months: 1.85%-2.20% nominal, 1.87%-2.22% effective
-- 24 months: 2.25%-2.55% nominal, 2.27%-2.58% effective
-- Over 24M: 3.35%-3.80% nominal, 3.40%-3.87% effective
-- Mortgage: 8.01% to 13.01%
-- Car Loan: 11.51% to 16.01%
-- Personal Loan: 20.01% to 30.01%`
+    hints: 'PLR 8.01%. SAYE product 1.25-2.00%. Eezi Auto (car loan) 11.51-16.01%. Mortgage 8.01-13.01%, Personal 20.01-30.01%. Phone 367 0100, Website www.bsb.bw'
   },
-
+  BBS: {
+    aliases: ['bbs'],
+    fullName: 'BBS Bank',
+    website: 'https://www.bbs.co.bw',
+    hints: 'Image-based PDF. Look carefully at entire document for rate table.'
+  },
   FNB: {
     aliases: ['fnb', 'first national'],
     fullName: 'FNB Botswana',
     website: 'https://www.fnbbotswana.co.bw',
-    pdfStructure: `FNB BOTSWANA`
+    hints: 'First National Bank Botswana'
   },
-
   STANBIC: {
     aliases: ['stanbic'],
     fullName: 'Stanbic Bank Botswana',
     website: 'https://www.stanbicbank.co.bw',
-    pdfStructure: `STANBIC BANK`
+    hints: 'Standard Bank Group'
   },
-
   STANDARD_CHARTERED: {
     aliases: ['standard chartered', 'sc bank'],
     fullName: 'Standard Chartered Botswana',
     website: 'https://www.sc.com/bw',
-    pdfStructure: `STANDARD CHARTERED`
+    hints: 'SC Bank'
   },
-
   BANK_GABORONE: {
     aliases: ['bank gaborone', 'bankg'],
     fullName: 'Bank Gaborone',
     website: 'https://www.bankg.co.bw',
-    pdfStructure: `BANK GABORONE`
+    hints: 'Local bank'
   }
 };
 
-// ============================================================
-// HELPERS
-// ============================================================
 function detectBank(filename) {
   const lower = (filename || '').toLowerCase();
   for (const [key, info] of Object.entries(BANK_KNOWLEDGE)) {
-    if (info.aliases.some(a => lower.includes(a))) return { key, info };
+    if (info.aliases.some(a => lower.includes(a))) return info;
   }
   return null;
 }
@@ -120,38 +75,36 @@ function countFilled(data) {
   return Object.values(data).filter(v => v !== null && v !== undefined && v !== '').length;
 }
 
-function parseJSON(raw) {
-  if (!raw) return null;
-  const clean = raw.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+function cleanJSON(text) {
+  if (!text) return null;
+  const clean = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
   try {
     return JSON.parse(clean);
-  } catch (e) {
+  } catch {
     const match = clean.match(/\{[\s\S]*\}/);
-    if (match) return JSON.parse(match[0]);
-    return null;
+    return match ? JSON.parse(match[0]) : null;
   }
 }
 
-function applyFallbacks(data, bankInfo) {
-  if (!data) return data;
-  if (!data['Bank Name'] && bankInfo) data['Bank Name'] = bankInfo.fullName;
-  if (bankInfo?.website && (!data['Website'] || data['Website'] === 'null')) {
-    data['Website'] = bankInfo.website;
-  }
-  return data;
-}
-
-// ============================================================
-// PROMPT BUILDER
-// ============================================================
 function buildPrompt(bankInfo) {
-  const bankSection = bankInfo ? `\nBANK INFO:\n${bankInfo.pdfStructure}\n` : '';
+  const context = bankInfo 
+    ? `\nCONTEXT: This is ${bankInfo.fullName}. ${bankInfo.hints}\n`
+    : '';
 
-  return `Extract bank interest rates from this document. Return ONLY JSON.
+  return `Read this Botswana bank document VISUALLY and extract all interest rates. Return ONLY valid JSON.
+${context}
+CRITICAL RULES:
+1. All rates = plain numbers (8.01 not "8.01%" not "Prime+2")
+2. For "PLR + X%" or "Prime + X%": calculate final (PLR=8.01, +5% → 13.01)
+3. N/A, Nil, Negotiable → null
+4. "Nominal" ≠ "Effective" — extract both
+5. "91 Day" ≠ "3 Month" — different products
+6. "Over 24 Months" ≠ "24 Months"
+7. Ignore ZAR/USD/GBP/EUR — BWP only
+8. Min balance = number only (1000 not "P1,000")
+9. Look EVERYWHERE for Website and Contact Phone (header, footer, small print)
 
-${bankSection}
-
-Return this EXACT structure:
+Return EXACTLY this JSON (null for missing):
 {
   "Bank Name": "",
   "Data Month": "",
@@ -159,47 +112,102 @@ Return this EXACT structure:
   "Prime Lending Rate": null,
   "Website": "",
   "Contact Phone": null,
-  "Current Account Min": null, "Current Account Max": null,
-  "Call Account Min": null, "Call Account Max": null,
-  "Call Account Effective Min": null, "Call Account Effective Max": null,
-  "Savings Min": null, "Savings Max": null,
-  "Savings Effective Min": null, "Savings Effective Max": null,
-  "FD 3M Nominal Min": null, "FD 3M Nominal Max": null,
-  "FD 3M Effective Min": null, "FD 3M Effective Max": null,
-  "FD 6M Nominal Min": null, "FD 6M Nominal Max": null,
-  "FD 6M Effective Min": null, "FD 6M Effective Max": null,
-  "FD 12M Nominal Min": null, "FD 12M Nominal Max": null,
-  "FD 12M Effective Min": null, "FD 12M Effective Max": null,
-  "FD 24M Nominal Min": null, "FD 24M Nominal Max": null,
-  "FD 24M Effective Min": null, "FD 24M Effective Max": null,
-  "FD Over24M Nominal Min": null, "FD Over24M Nominal Max": null,
-  "FD Over24M Effective Min": null, "FD Over24M Effective Max": null,
-  "Mortgage Rate Min": null, "Mortgage Rate Max": null,
-  "Personal Loan Min": null, "Personal Loan Max": null,
-  "Car Loan Min": null, "Car Loan Max": null,
-  "Credit Card Rate Min": null, "Credit Card Rate Max": null
+  "Current Account Min": null,
+  "Current Account Max": null,
+  "Call Account Min": null,
+  "Call Account Max": null,
+  "Call Account Effective Min": null,
+  "Call Account Effective Max": null,
+  "Savings Min": null,
+  "Savings Max": null,
+  "Savings Effective Min": null,
+  "Savings Effective Max": null,
+  "Ordinary Savings Min": null,
+  "Ordinary Savings Max": null,
+  "SAYE Min": null,
+  "SAYE Max": null,
+  "SAYE Effective Min": null,
+  "SAYE Effective Max": null,
+  "FD 91D Nominal Min": null,
+  "FD 91D Nominal Max": null,
+  "FD 91D Effective Min": null,
+  "FD 91D Effective Max": null,
+  "FD 3M Nominal Min": null,
+  "FD 3M Nominal Max": null,
+  "FD 3M Effective Min": null,
+  "FD 3M Effective Max": null,
+  "FD 6M Nominal Min": null,
+  "FD 6M Nominal Max": null,
+  "FD 6M Effective Min": null,
+  "FD 6M Effective Max": null,
+  "FD 12M Nominal Min": null,
+  "FD 12M Nominal Max": null,
+  "FD 12M Effective Min": null,
+  "FD 12M Effective Max": null,
+  "FD 24M Nominal Min": null,
+  "FD 24M Nominal Max": null,
+  "FD 24M Effective Min": null,
+  "FD 24M Effective Max": null,
+  "FD Over24M Nominal Min": null,
+  "FD Over24M Nominal Max": null,
+  "FD Over24M Effective Min": null,
+  "FD Over24M Effective Max": null,
+  "FD Minimum Balance": null,
+  "Mortgage Rate Min": null,
+  "Mortgage Rate Max": null,
+  "Overdraft Min": null,
+  "Overdraft Max": null,
+  "Credit Card Rate Min": null,
+  "Credit Card Rate Max": null,
+  "Car Loan Min": null,
+  "Car Loan Max": null,
+  "Lease Loan Min": null,
+  "Lease Loan Max": null,
+  "Personal Loan Min": null,
+  "Personal Loan Max": null,
+  "Other LT Min": null,
+  "Other LT Max": null
 }`;
 }
 
-// ============================================================
-// GEMINI API CALL
-// ============================================================
-async function callGemini(parts) {
+// ════════════════════════════════════════════════════════════
+// GEMINI VISION API CALL
+// Sends raw file bytes via inline_data — no text extraction
+// ════════════════════════════════════════════════════════════
+async function callGeminiVision(base64Content, mimeType, prompt) {
   const key = process.env.GEMINI_API_KEY;
 
   if (!key) {
-    throw new Error('GEMINI_API_KEY not found');
+    throw new Error(
+      'GEMINI_API_KEY is missing. Go to Vercel Dashboard → Your Project → Settings → ' +
+      'Environment Variables → Add New → Name: GEMINI_API_KEY, Value: your key from ' +
+      'https://aistudio.google.com/app/apikey (it\'s free). Then redeploy.'
+    );
   }
 
+  console.log('[Gemini Vision] Calling...');
+
   const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-001:generateContent?key=${key}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        contents: [{ parts }],
-        generationConfig: { 
-          temperature: 0.1,
+        contents: [{
+          parts: [
+            {
+              inline_data: {
+                mime_type: mimeType,
+                data: base64Content  // Raw file bytes — Gemini reads it visually
+              }
+            },
+            {
+              text: prompt
+            }
+          ]
+        }],
+        generationConfig: {
+          temperature: 0.05,
           maxOutputTokens: 4096
         }
       })
@@ -207,85 +215,92 @@ async function callGemini(parts) {
   );
 
   if (!response.ok) {
-    const error = await response.text();
-    throw new Error(`Gemini error: ${error}`);
+    const errorText = await response.text();
+    throw new Error(`Gemini API ${response.status}: ${errorText.substring(0, 300)}`);
   }
 
   const result = await response.json();
+
+  if (result.error) {
+    throw new Error(`Gemini error: ${result.error.message}`);
+  }
+
   const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
   
   if (!text) {
-    throw new Error('Gemini returned empty');
+    const reason = result.candidates?.[0]?.finishReason || 'unknown';
+    throw new Error(`Gemini returned empty response (finish reason: ${reason})`);
   }
 
-  return parseJSON(text);
+  console.log('[Gemini Vision] Success');
+  return cleanJSON(text);
 }
 
-// ============================================================
+// ════════════════════════════════════════════════════════════
 // MAIN HANDLER
-// ============================================================
+// ════════════════════════════════════════════════════════════
 module.exports = async (req, res) => {
-  // Set CORS headers for ALL requests (including OPTIONS)
+  // CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  res.setHeader('Access-Control-Max-Age', '86400'); // 24 hours
+  res.setHeader('Access-Control-Max-Age', '86400');
   
-  // Handle OPTIONS request (preflight)
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
-  
-  // Only allow POST
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
+  if (req.method === 'OPTIONS') return res.status(200).end();
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   try {
     const { filename, content } = req.body || {};
 
     if (!filename || !content) {
-      return res.status(400).json({ error: 'Missing filename or content' });
+      return res.status(400).json({ 
+        error: 'Missing filename or content',
+        hint: 'Upload a PDF, JPG, or PNG file'
+      });
     }
 
     const mimeType = detectMimeType(filename);
-    const bankDetected = detectBank(filename);
-    const bankInfo = bankDetected?.info || null;
+    const bankInfo = detectBank(filename);
+    const prompt = buildPrompt(bankInfo);
 
-    // Call Gemini
-    const data = await callGemini([
-      {
-        inline_data: {
-          mime_type: mimeType,
-          data: content
-        }
-      },
-      {
-        text: buildPrompt(bankInfo)
-      }
-    ]);
+    console.log(`\n=== ${filename} | ${mimeType} | ${bankInfo?.fullName || 'Unknown Bank'} ===`);
+
+    // Call Gemini Vision
+    let data = await callGeminiVision(content, mimeType, prompt);
 
     if (!data) {
-      throw new Error('Failed to parse response');
+      throw new Error('Failed to parse Gemini response');
     }
 
-    const finalData = applyFallbacks(data, bankInfo);
-    const filled = countFilled(finalData);
+    // Apply fallbacks from knowledge base
+    if (!data['Bank Name'] && bankInfo) {
+      data['Bank Name'] = bankInfo.fullName;
+    }
+    if (bankInfo?.website && (!data['Website'] || data['Website'] === 'null')) {
+      data['Website'] = bankInfo.website;
+    }
+
+    const filled = countFilled(data);
     const quality = Math.round((filled / 44) * 100);
+
+    console.log(`=== Done: ${data['Bank Name']} | ${filled}/44 fields | ${quality}% ===\n`);
 
     return res.status(200).json({
       success: true,
-      message: `Extracted ${filled}/44 fields (${quality}%)`,
+      message: `Extracted ${filled}/44 fields (${quality}% complete)`,
       quality,
-      data: finalData
+      data
     });
 
   } catch (error) {
     console.error('Error:', error);
-    return res.status(500).json({ 
-      error: 'Extraction failed', 
-      details: error.message 
+    
+    return res.status(500).json({
+      error: 'Extraction failed',
+      details: error.message,
+      hint: error.message.includes('GEMINI_API_KEY')
+        ? 'Add GEMINI_API_KEY to Vercel environment variables (free key from https://aistudio.google.com/app/apikey)'
+        : 'Try uploading a clearer PDF or rename file to include bank name (e.g. ABSA_Jan2026.pdf)'
     });
   }
 };
-
