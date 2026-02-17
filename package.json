@@ -1,6 +1,6 @@
 {
   "name": "bw-rate-watch-parser",
-  "version": "10.0.0",
+  "version": "11.0.0",
   "main": "api/parse-pdf.js",
   "dependencies": {
     "@google/generative-ai": "^0.21.0"
