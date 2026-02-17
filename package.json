@@ -7,6 +7,6 @@
     "@google/generative-ai": "^0.21.0"
   },
   "engines": {
-    "node": "20.x"
+    "node": "22.x"
   }
 }
