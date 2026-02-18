@@ -168,7 +168,9 @@
 
 <script>
 // Configuration - Uses relative URL to always call current deployment
-const API_URL = '/api/parse-pdf';
+const API_URL = window.location.hostname === 'localhost' 
+  ? '/api/parse-pdf' 
+  : 'https://rates-parser.vercel.app/api/parse-pdf';
 
 let currentData = null;
 let uploadHistory = [];
@@ -355,3 +357,4 @@ function showNotification(message, type = 'success') {
 </script>
 </body>
 </html>
+
