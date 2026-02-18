@@ -1,7 +1,6 @@
 // ============================================================
 // BW RATE WATCH — PDF PARSER (PURE GEMINI VISION)
 // 100% FREE — Uses Gemini 1.5 Flash with vision
-// Sends raw file bytes via inline_data (no pdf-parse)
 // ============================================================
 
 const BANK_KNOWLEDGE = {
@@ -80,7 +79,7 @@ function cleanJSON(text) {
   const clean = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
   try {
     return JSON.parse(clean);
-  } catch {
+  } catch (e) {
     const match = clean.match(/\{[\s\S]*\}/);
     return match ? JSON.parse(match[0]) : null;
   }
@@ -170,75 +169,80 @@ Return EXACTLY this JSON (null for missing):
 }`;
 }
 
-// ════════════════════════════════════════════════════════════
-// GEMINI VISION API CALL
-// Sends raw file bytes via inline_data — no text extraction
-// ════════════════════════════════════════════════════════════
 async function callGeminiVision(base64Content, mimeType, prompt) {
   const key = process.env.GEMINI_API_KEY;
 
   if (!key) {
-    throw new Error(
-      'GEMINI_API_KEY is missing. Go to Vercel Dashboard → Your Project → Settings → ' +
-      'Environment Variables → Add New → Name: GEMINI_API_KEY, Value: your key from ' +
-      'https://aistudio.google.com/app/apikey (it\'s free). Then redeploy.'
-    );
+    throw new Error('GEMINI_API_KEY is missing from environment variables');
   }
 
-  console.log('[Gemini Vision] Calling...');
+  console.log('[Gemini Vision] Calling API...');
+  console.log('[Gemini Vision] MIME type:', mimeType);
+  console.log('[Gemini Vision] Content length:', base64Content.length);
 
-  const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`,
-    {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`;
+  
+  const requestBody = {
+    contents: [{
+      parts: [
+        {
+          inline_data: {
+            mime_type: mimeType,
+            data: base64Content
+          }
+        },
+        {
+          text: prompt
+        }
+      ]
+    }],
+    generationConfig: {
+      temperature: 0.05,
+      maxOutputTokens: 4096
+    }
+  };
+
+  console.log('[Gemini Vision] Request URL:', url.replace(key, 'HIDDEN_KEY'));
+
+  try {
+    const response = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{
-          parts: [
-            {
-              inline_data: {
-                mime_type: mimeType,
-                data: base64Content  // Raw file bytes — Gemini reads it visually
-              }
-            },
-            {
-              text: prompt
-            }
-          ]
-        }],
-        generationConfig: {
-          temperature: 0.05,
-          maxOutputTokens: 4096
-        }
-      })
+      body: JSON.stringify(requestBody)
+    });
+
+    console.log('[Gemini Vision] Response status:', response.status);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('[Gemini Vision] Error response:', errorText.substring(0, 500));
+      throw new Error(`Gemini API ${response.status}: ${errorText.substring(0, 200)}`);
     }
-  );
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`Gemini API ${response.status}: ${errorText.substring(0, 300)}`);
+    const result = await response.json();
+    console.log('[Gemini Vision] API response received');
+
+    if (result.error) {
+      console.error('[Gemini Vision] API error:', result.error);
+      throw new Error(`Gemini error: ${result.error.message}`);
+    }
+
+    const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
+    
+    if (!text) {
+      const reason = result.candidates?.[0]?.finishReason || 'unknown';
+      console.error('[Gemini Vision] Empty response, reason:', reason);
+      throw new Error(`Gemini returned empty response (finish reason: ${reason})`);
+    }
+
+    console.log('[Gemini Vision] Success, response length:', text.length);
+    return cleanJSON(text);
+  } catch (error) {
+    console.error('[Gemini Vision] Fetch error:', error.message);
+    throw error;
   }
-
-  const result = await response.json();
-
-  if (result.error) {
-    throw new Error(`Gemini error: ${result.error.message}`);
-  }
-
-  const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
-  
-  if (!text) {
-    const reason = result.candidates?.[0]?.finishReason || 'unknown';
-    throw new Error(`Gemini returned empty response (finish reason: ${reason})`);
-  }
-
-  console.log('[Gemini Vision] Success');
-  return cleanJSON(text);
 }
 
-// ════════════════════════════════════════════════════════════
-// MAIN HANDLER
-// ════════════════════════════════════════════════════════════
 module.exports = async (req, res) => {
   // CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -250,34 +254,54 @@ module.exports = async (req, res) => {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   try {
+    console.log('[API] Request received');
+    console.log('[API] Body keys:', Object.keys(req.body || {}));
+    
     const { filename, content } = req.body || {};
 
-    if (!filename || !content) {
+    if (!filename) {
+      console.error('[API] Missing filename');
       return res.status(400).json({ 
-        error: 'Missing filename or content',
-        hint: 'Upload a PDF, JPG, or PNG file'
+        error: 'Missing filename',
+        details: 'No filename provided in request'
       });
     }
+
+    if (!content) {
+      console.error('[API] Missing content');
+      return res.status(400).json({ 
+        error: 'Missing content',
+        details: 'No file content provided in request'
+      });
+    }
+
+    console.log('[API] Filename:', filename);
+    console.log('[API] Content length:', content.length);
 
     const mimeType = detectMimeType(filename);
     const bankInfo = detectBank(filename);
     const prompt = buildPrompt(bankInfo);
 
-    console.log(`\n=== ${filename} | ${mimeType} | ${bankInfo?.fullName || 'Unknown Bank'} ===`);
+    console.log(`\n=== Processing: ${filename} | ${mimeType} | ${bankInfo?.fullName || 'Unknown Bank'} ===`);
 
     // Call Gemini Vision
     let data = await callGeminiVision(content, mimeType, prompt);
 
     if (!data) {
-      throw new Error('Failed to parse Gemini response');
+      console.error('[API] Failed to parse Gemini response - data is null');
+      throw new Error('Failed to parse Gemini response - returned null');
     }
+
+    console.log('[API] Parsed data keys:', Object.keys(data).length);
 
     // Apply fallbacks from knowledge base
     if (!data['Bank Name'] && bankInfo) {
       data['Bank Name'] = bankInfo.fullName;
+      console.log('[API] Applied bank name fallback:', bankInfo.fullName);
     }
     if (bankInfo?.website && (!data['Website'] || data['Website'] === 'null')) {
       data['Website'] = bankInfo.website;
+      console.log('[API] Applied website fallback:', bankInfo.website);
     }
 
     const filled = countFilled(data);
@@ -293,11 +317,14 @@ module.exports = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Error:', error);
+    console.error('[API] Error:', error);
+    console.error('[API] Error stack:', error.stack);
     
+    // Return more detailed error information
     return res.status(500).json({
       error: 'Extraction failed',
       details: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
       hint: error.message.includes('GEMINI_API_KEY')
         ? 'Add GEMINI_API_KEY to Vercel environment variables (free key from https://aistudio.google.com/app/apikey)'
         : 'Try uploading a clearer PDF or rename file to include bank name (e.g. ABSA_Jan2026.pdf)'
