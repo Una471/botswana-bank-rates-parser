@@ -1,11 +1,10 @@
 {
   "name": "bw-rate-watch-parser",
-  "version": "11.0.0",
+  "version": "9.0.0-gemini-vision",
+  "description": "Pure Gemini Vision (FREE) - no pdf-parse, reads PDFs visually",
   "main": "api/parse-pdf.js",
-  "dependencies": {
-    "@google/generative-ai": "^0.21.0"
-  },
+  "dependencies": {},
   "engines": {
-    "node": "20.x"
+    "node": "24.x"
   }
 }
